@@ -1,0 +1,17 @@
+export interface Product {
+  id: number;
+  name: string;
+  category: string;
+  price: number;
+  originalPrice?: number;
+  description: string;
+  imageUrl: string;
+  stock: number;
+  isOEM: boolean; // true = Original (OEM), false = Genérica
+  compatibility: string[]; 
+  specifications: {
+    warranty: string;
+    condition: string;
+    manufacturer: string;
+  };
+}

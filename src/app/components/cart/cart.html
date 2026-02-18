@@ -1,0 +1,119 @@
+<div class="container">
+
+  <div class="cart-header">
+    <h1>🛒 Tu Carrito</h1>
+    <p *ngIf="totalItems > 0" class="cart-summary">
+      {{ totalItems }} {{ totalItems === 1 ? 'producto' : 'productos' }} en tu carrito
+    </p>
+  </div>
+
+  <!-- Carrito vacío -->
+  <div *ngIf="cartItems.length === 0" class="empty-cart">
+    <div class="empty-icon">🛒</div>
+    <h2>Tu carrito está vacío</h2>
+    <p>Explora nuestro catálogo y añade productos a tu carrito</p>
+    <button class="btn-primary" (click)="goToProducts()">
+      Ver Catálogo →
+    </button>
+  </div>
+
+  <!-- Carrito con productos -->
+  <div *ngIf="cartItems.length > 0" class="cart-content">
+
+    <!-- Lista de productos -->
+    <div class="cart-items">
+
+      <!-- Cabecera de la tabla -->
+      <div class="cart-table-header">
+        <span>Producto</span>
+        <span>Precio</span>
+        <span>Cantidad</span>
+        <span>Subtotal</span>
+        <span></span>
+      </div>
+
+      <!-- Cada producto del carrito -->
+      <div *ngFor="let item of cartItems" class="cart-item">
+
+        <!-- Imagen y nombre -->
+        <div class="item-product">
+          <img [src]="item.product.imageUrl" [alt]="item.product.name">
+          <div class="item-info">
+            <h3>{{ item.product.name }}</h3>
+            <span class="item-category">{{ item.product.category }}</span>
+            <span class="item-type" [class.oem]="item.product.isOEM" [class.generic]="!item.product.isOEM">
+              {{ item.product.isOEM ? 'OEM Original' : 'Genérica' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Precio unitario -->
+        <div class="item-price">
+          {{ item.product.price | currency:'EUR':'symbol':'1.2-2' }}
+        </div>
+
+        <!-- Cantidad con controles -->
+        <div class="item-quantity">
+          <button class="qty-btn" (click)="decreaseQuantity(item.product.id)">−</button>
+          <span class="qty-value">{{ item.quantity }}</span>
+          <button
+            class="qty-btn"
+            (click)="increaseQuantity(item.product.id)"
+            [disabled]="item.quantity >= item.product.stock">
+            +
+          </button>
+        </div>
+
+        <!-- Subtotal -->
+        <div class="item-subtotal">
+          {{ (item.product.price * item.quantity) | currency:'EUR':'symbol':'1.2-2' }}
+        </div>
+
+        <!-- Botón eliminar -->
+        <div class="item-remove">
+          <button class="btn-remove" (click)="removeItem(item.product.id)">✕</button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Resumen del pedido -->
+    <div class="cart-summary-box">
+      <h2>Resumen del Pedido</h2>
+
+      <div class="summary-line">
+        <span>Subtotal ({{ totalItems }} productos)</span>
+        <span>{{ totalPrice | currency:'EUR':'symbol':'1.2-2' }}</span>
+      </div>
+      <div class="summary-line">
+        <span>Envío</span>
+        <span class="free-shipping">
+          {{ totalPrice >= 50 ? 'GRATIS' : '4,99 €' }}
+        </span>
+      </div>
+      <div *ngIf="totalPrice < 50" class="shipping-notice">
+        ℹ️ Añade {{ (50 - totalPrice) | currency:'EUR':'symbol':'1.2-2' }} más para envío gratis
+      </div>
+
+      <div class="summary-divider"></div>
+
+      <div class="summary-total">
+        <span>Total</span>
+        <span>{{ (totalPrice + (totalPrice >= 50 ? 0 : 4.99)) | currency:'EUR':'symbol':'1.2-2' }}</span>
+      </div>
+
+      <!-- Botones de acción -->
+      <button class="btn-checkout" (click)="goToCheckout()">
+        Proceder al Pago
+      </button>
+      <button class="btn-continue" (click)="goToProducts()">
+        Seguir comprando
+      </button>
+      <button class="btn-clear" (click)="clearCart()">
+        Vaciar carrito
+      </button>
+
+    </div>
+  </div>
+</div>

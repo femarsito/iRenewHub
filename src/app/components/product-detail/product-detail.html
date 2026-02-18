@@ -1,0 +1,126 @@
+<div class="container">
+  
+  <!-- Estado de carga -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando detalles del producto...</p>
+  </div>
+
+  <!-- Mensaje de error -->
+  <div *ngIf="!isLoading && errorMessage" class="error-message">
+    <h2>❌ {{ errorMessage }}</h2>
+    <button class="btn-back" (click)="goBack()">Volver al catálogo</button>
+  </div>
+
+  <!-- Detalle del producto -->
+  <div *ngIf="!isLoading && product" class="product-detail">
+    
+    <!-- Botón volver -->
+    <button class="btn-back-top" (click)="goBack()">
+      Volver al catálogo
+    </button>
+
+    <div class="detail-grid">
+      
+      <!-- Columna izquierda: Imagen -->
+      <div class="image-section">
+        <div class="badge" [class.oem]="product.isOEM" [class.generic]="!product.isOEM">
+          {{ product.isOEM ? 'OEM Original' : 'Genérica Certificada' }}
+        </div>
+        <img [src]="product.imageUrl" [alt]="product.name">
+      </div>
+
+      <!-- Columna derecha: Información -->
+      <div class="info-section">
+        
+        <!-- Categoría -->
+        <p class="category">{{ product.category }}</p>
+
+        <!-- Nombre -->
+        <h1>{{ product.name }}</h1>
+
+        <!-- Precio -->
+        <div class="price-section">
+          <span class="current-price">{{ product.price | currency:'EUR':'symbol':'1.2-2' }}</span>
+          <span *ngIf="product.originalPrice" class="original-price">
+            {{ product.originalPrice | currency:'EUR':'symbol':'1.2-2' }}
+          </span>
+          <span *ngIf="product.originalPrice" class="discount">
+            -{{ ((product.originalPrice - product.price) / product.originalPrice * 100).toFixed(0) }}%
+          </span>
+        </div>
+
+        <!-- Stock -->
+        <div class="stock-info" [class.low-stock]="product.stock < 10 && product.stock > 0">
+          <span *ngIf="product.stock > 10" class="in-stock">
+            En stock ({{ product.stock }} unidades disponibles)
+          </span>
+          <span *ngIf="product.stock > 0 && product.stock <= 10" class="low-stock-text">
+            Últimas {{ product.stock }} unidades
+          </span>
+          <span *ngIf="product.stock === 0" class="out-of-stock">
+            Agotado
+          </span>
+        </div>
+
+        <!-- Descripción -->
+        <div class="description">
+          <h3>Descripción</h3>
+          <p>{{ product.description }}</p>
+        </div>
+
+        <!-- Compatibilidad -->
+        <div class="compatibility-section">
+          <h3>Compatibilidad</h3>
+          <div class="compatibility-tags">
+            <span *ngFor="let model of product.compatibility" class="tag">
+              {{ model }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Especificaciones técnicas -->
+        <div class="specifications">
+          <h3>Especificaciones Técnicas</h3>
+          <table>
+            <tr>
+              <td><strong>Garantía:</strong></td>
+              <td>{{ product.specifications.warranty }}</td>
+            </tr>
+            <tr>
+              <td><strong>Estado:</strong></td>
+              <td>{{ product.specifications.condition }}</td>
+            </tr>
+            <tr>
+              <td><strong>Fabricante:</strong></td>
+              <td>{{ product.specifications.manufacturer }}</td>
+            </tr>
+            <tr>
+              <td><strong>Tipo:</strong></td>
+              <td>{{ product.isOEM ? 'Pieza Original (OEM)' : 'Genérica Certificada' }}</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="action-buttons">
+          <button
+            class="btn-add-cart"
+            (click)="addToCart()"
+            [disabled]="product.stock === 0">
+            <span *ngIf="!addedToCart">
+              {{ product.stock > 0 ? 'Añadir al carrito' : 'Agotado' }}
+            </span>
+            <span *ngIf="addedToCart">¡Añadido al carrito!</span>
+          </button>
+
+          <button class="btn-back-mobile" (click)="goBack()">
+            Volver
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>

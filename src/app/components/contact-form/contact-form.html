@@ -1,0 +1,157 @@
+<div class="container">
+  <div class="form-wrapper">
+    
+    <!-- Encabezado -->
+    <div class="header">
+      <h1>Contacta con Soporte Técnico</h1>
+      <p class="subtitle">¿Tienes dudas sobre nuestros repuestos? Estamos aquí para ayudarte</p>
+    </div>
+
+    <!-- Mensaje de éxito -->
+    <div *ngIf="submitSuccess" class="alert alert-success">
+      <strong>✓ ¡Mensaje enviado con éxito!</strong>
+      <p>Nos pondremos en contacto contigo en menos de 24 horas.</p>
+    </div>
+
+    <!-- Mensaje de error -->
+    <div *ngIf="submitError" class="alert alert-error">
+      <strong>✗ Error al enviar el mensaje</strong>
+      <p>Por favor, inténtalo de nuevo más tarde.</p>
+    </div>
+
+    <!-- Formulario -->
+    <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="contact-form">
+      
+      <!-- Campo: Nombre -->
+      <div class="form-group">
+        <label for="name">Nombre completo *</label>
+        <input 
+          type="text" 
+          id="name" 
+          formControlName="name"
+          placeholder="Ej: Fernando Martínez Cordero"
+          [class.error]="name?.invalid && name?.touched">
+        
+        <!-- Mensajes de error para nombre -->
+        <div *ngIf="name?.invalid && name?.touched" class="error-message">
+          <span *ngIf="name?.errors?.['required']">El nombre es obligatorio</span>
+          <span *ngIf="name?.errors?.['minlength']">
+            El nombre debe tener al menos 3 caracteres
+          </span>
+        </div>
+      </div>
+
+      <!-- Campo: Email -->
+      <div class="form-group">
+        <label for="email">Email *</label>
+        <input 
+          type="email" 
+          id="email" 
+          formControlName="email"
+          placeholder="Ej: fernando@gmail.com"
+          [class.error]="email?.invalid && email?.touched">
+        
+        <!-- Mensajes de error para email -->
+        <div *ngIf="email?.invalid && email?.touched" class="error-message">
+          <span *ngIf="email?.errors?.['required']">El email es obligatorio</span>
+          <span *ngIf="email?.errors?.['email']">El email no es válido</span>
+        </div>
+      </div>
+
+      <!-- Campo: Teléfono -->
+      <div class="form-group">
+        <label for="phone">Teléfono *</label>
+        <input 
+          type="tel" 
+          id="phone" 
+          formControlName="phone"
+          placeholder="Ej: 612345678"
+          [class.error]="phone?.invalid && phone?.touched">
+        
+        <!-- Mensajes de error para teléfono -->
+        <div *ngIf="phone?.invalid && phone?.touched" class="error-message">
+          <span *ngIf="phone?.errors?.['required']">El teléfono es obligatorio</span>
+          <span *ngIf="phone?.errors?.['pattern']">
+            El teléfono debe tener 9 dígitos numéricos
+          </span>
+        </div>
+      </div>
+
+      <!-- Campo: Asunto -->
+      <div class="form-group">
+        <label for="subject">Asunto *</label>
+        <input 
+          type="text" 
+          id="subject" 
+          formControlName="subject"
+          placeholder="Ej: Consulta sobre pantalla iPhone 14"
+          [class.error]="subject?.invalid && subject?.touched">
+        
+        <!-- Mensajes de error para asunto -->
+        <div *ngIf="subject?.invalid && subject?.touched" class="error-message">
+          <span *ngIf="subject?.errors?.['required']">El asunto es obligatorio</span>
+          <span *ngIf="subject?.errors?.['minlength']">
+            El asunto debe tener al menos 5 caracteres
+          </span>
+        </div>
+      </div>
+
+      <!-- Campo: Mensaje -->
+      <div class="form-group">
+        <label for="message">Mensaje *</label>
+        <textarea 
+          id="message" 
+          formControlName="message"
+          rows="6"
+          placeholder="Describe tu consulta en detalle..."
+          [class.error]="message?.invalid && message?.touched"></textarea>
+        
+        <!-- Contador de caracteres -->
+        <div class="char-counter">
+          {{ message?.value?.length || 0 }} / 500 caracteres
+        </div>
+        
+        <!-- Mensajes de error para mensaje -->
+        <div *ngIf="message?.invalid && message?.touched" class="error-message">
+          <span *ngIf="message?.errors?.['required']">El mensaje es obligatorio</span>
+          <span *ngIf="message?.errors?.['minlength']">
+            El mensaje debe tener al menos 20 caracteres
+          </span>
+          <span *ngIf="message?.errors?.['maxlength']">
+            El mensaje no puede superar los 500 caracteres
+          </span>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="form-actions">
+        <button 
+          type="submit" 
+          class="btn-submit"
+          [disabled]="isSubmitting">
+          <span *ngIf="!isSubmitting">Enviar consulta</span>
+          <span *ngIf="isSubmitting" class="loading-text">
+            <span class="spinner-small"></span>
+            Enviando...
+          </span>
+        </button>
+
+        <button 
+          type="button" 
+          class="btn-reset"
+          (click)="resetForm()"
+          [disabled]="isSubmitting">
+          Limpiar formulario
+        </button>
+      </div>
+
+      <!-- Información adicional -->
+      <div class="form-info">
+        <p><strong>Tiempo de respuesta:</strong> Menos de 24 horas</p>
+        <p><strong>Horario de atención:</strong> Lunes a Viernes, 9:00 - 18:00</p>
+      </div>
+
+    </form>
+
+  </div>
+</div>

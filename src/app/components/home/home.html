@@ -1,0 +1,184 @@
+<!-- HERO SECTION -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">Repuestos Originales para iPhone</div>
+    <h1 class="hero-title">
+      Tu iPhone Merece <br>
+      <span class="hero-highlight">Las Mejores Piezas</span>
+    </h1>
+    <p class="hero-subtitle">
+      Especialistas en repuestos OEM originales y genéricos certificados por Apple.
+      Calidad garantizada para todos los modelos de iPhone.
+    </p>
+    <div class="hero-buttons">
+      <button class="btn-primary" (click)="goToProducts()">
+        Ver Catálogo Completo
+      </button>
+      <button class="btn-secondary" (click)="goToContact()">
+        Contactar Soporte
+      </button>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <span class="stat-number">20+</span>
+        <span class="stat-label">Modelos</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-number">98%</span>
+        <span class="stat-label">Satisfacción</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-number">24h</span>
+        <span class="stat-label">Envío Express</span>
+      </div>
+    </div>
+  </div>
+  <div class="hero-image">
+    <div class="hero-phone">
+      <div class="phone-screen">
+        <div class="phone-notch"></div>
+        <div class="phone-content">
+          <div class="phone-line"></div>
+          <div class="phone-line short"></div>
+          <div class="phone-line"></div>
+          <div class="phone-line short"></div>
+          <div class="phone-circle"></div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-blob"></div>
+  </div>
+</section>
+
+<!-- CATEGORÍAS -->
+<section class="categories-section">
+  <div class="section-container">
+    <div class="section-header">
+      <h2>Explora por Categoría</h2>
+      <p>Encuentra exactamente el repuesto que necesitas</p>
+    </div>
+    <div class="categories-grid">
+      <div 
+        *ngFor="let cat of categories" 
+        class="category-card"
+        (click)="goToCategory(cat.name)">
+        <span class="category-icon">{{ cat.icon }}</span>
+        <h3>{{ cat.name }}</h3>
+        <p>{{ cat.description }}</p>
+        <span class="category-arrow">→</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTOS DESTACADOS -->
+<section class="featured-section">
+  <div class="section-container">
+    <div class="section-header">
+      <h2>Productos Destacados</h2>
+      <p>Los repuestos más populares de nuestra tienda</p>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando productos...</p>
+    </div>
+
+    <!-- Grid de productos destacados -->
+    <div *ngIf="!isLoading" class="featured-grid">
+      <div 
+        *ngFor="let product of featuredProducts" 
+        class="featured-card"
+        (click)="goToDetail(product.id)">
+        <div class="featured-badge" [class.oem]="product.isOEM" [class.generic]="!product.isOEM">
+          {{ product.isOEM ? 'OEM' : 'Genérica' }}
+        </div>
+        <div class="featured-image">
+          <img [src]="product.imageUrl" [alt]="product.name">
+        </div>
+        <div class="featured-info">
+          <span class="featured-category">{{ product.category }}</span>
+          <h3>{{ product.name }}</h3>
+          <div class="featured-price">
+            <span class="price">{{ product.price | currency:'EUR':'symbol':'1.2-2' }}</span>
+            <span *ngIf="product.originalPrice" class="original-price">
+              {{ product.originalPrice | currency:'EUR':'symbol':'1.2-2' }}
+            </span>
+          </div>
+          <button class="btn-card" (click)="goToDetail(product.id); $event.stopPropagation()">
+            Ver Detalles
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="view-all">
+      <button class="btn-view-all" (click)="goToProducts()">
+        Ver todos los productos
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- VENTAJAS -->
+<section class="advantages-section">
+  <div class="section-container">
+    <div class="section-header light">
+      <h2>¿Por qué elegirnos?</h2>
+      <p>Comprometidos con la calidad y satisfacción del cliente</p>
+    </div>
+    <div class="advantages-grid">
+      <div *ngFor="let adv of advantages" class="advantage-card">
+        <span class="advantage-icon">{{ adv.icon }}</span>
+        <h3>{{ adv.title }}</h3>
+        <p>{{ adv.description }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-section">
+  <div class="cta-container">
+    <h2>¿Necesitas ayuda para encontrar tu repuesto?</h2>
+    <p>Nuestro equipo de expertos está listo para ayudarte</p>
+    <div class="cta-buttons">
+      <button class="btn-primary" (click)="goToProducts()">
+        Ver Catálogo
+      </button>
+      <button class="btn-white" (click)="goToContact()">
+        Contactar Ahora
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-brand">
+      <h3>iRenewHub</h3>
+      <p>Especialistas en repuestos originales y certificados para iPhone</p>
+    </div>
+    <div class="footer-links">
+      <h4>Navegación</h4>
+      <ul>
+        <li><a routerLink="/home">Inicio</a></li>
+        <li><a routerLink="/products">Catálogo</a></li>
+        <li><a routerLink="/contact">Contacto</a></li>
+      </ul>
+    </div>
+    <div class="footer-contact">
+      <h4>Contacto</h4>
+      <p>Email: soporte&#64;irenewhub.es</p>
+      <p>Tlf: +34 900 123 456</p>
+      <p>Horarios: Lun-Vie: 9:00 - 18:00</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 iRenewHub. Todos los derechos reservados.</p>
+  </div>
+</footer>

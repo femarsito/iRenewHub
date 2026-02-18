@@ -1,0 +1,342 @@
+<div class="container">
+
+  <!-- PEDIDO COMPLETADO -->
+  <!-- PEDIDO COMPLETADO -->
+<div *ngIf="orderCompleted" class="order-success">
+  <div class="success-icon">🎉</div>
+  <h1>¡Pedido Confirmado!</h1>
+  <p class="order-number">Número de pedido: <strong>{{ orderNumber }}</strong></p>
+  <p class="order-message">
+    Hemos recibido tu pedido correctamente. Recibirás un email de confirmación
+    en <strong>{{ shippingForm.value.email }}</strong> con todos los detalles.
+  </p>
+
+  <div class="order-details">
+    <h3>Resumen del Pedido</h3>
+    <!-- Cambiado de cartItems a orderSummary -->
+    <div *ngFor="let item of orderSummary" class="order-item">
+      <span>{{ item.productName }} x{{ item.quantity }}</span>
+      <span>{{ item.subtotal | currency:'EUR':'symbol':'1.2-2' }}</span>
+    </div>
+    <div class="order-item">
+      <span>Envío</span>
+      <span>{{ shippingCostSnapshot | currency:'EUR':'symbol':'1.2-2' }}</span>
+    </div>
+    <div class="order-total">
+      <strong>Total pagado:</strong>
+      <strong>{{ totalSnapshot | currency:'EUR':'symbol':'1.2-2' }}</strong>
+    </div>
+  </div>
+
+  <div class="success-actions">
+    <button class="btn-primary" (click)="goToHome()">Volver al Inicio</button>
+    <button class="btn-secondary" (click)="goToProducts()">Seguir Comprando</button>
+  </div>
+</div>
+
+  <!-- PROCESO DE PAGO -->
+  <div *ngIf="!orderCompleted">
+
+    <!-- Indicador de pasos -->
+    <div class="steps-indicator">
+      <div class="step" [class.active]="currentStep >= 1" [class.completed]="currentStep > 1">
+        <div class="step-circle">{{ currentStep > 1 ? '✓' : '1' }}</div>
+        <span>Envío</span>
+      </div>
+      <div class="step-line" [class.active]="currentStep > 1"></div>
+      <div class="step" [class.active]="currentStep >= 2" [class.completed]="currentStep > 2">
+        <div class="step-circle">{{ currentStep > 2 ? '✓' : '2' }}</div>
+        <span>Pago</span>
+      </div>
+      <div class="step-line" [class.active]="currentStep > 2"></div>
+      <div class="step" [class.active]="currentStep >= 3">
+        <div class="step-circle">3</div>
+        <span>Confirmar</span>
+      </div>
+    </div>
+
+    <div class="checkout-content">
+
+      <!-- COLUMNA IZQUIERDA: Formularios -->
+      <div class="checkout-forms">
+
+        <!-- PASO 1: Datos de envío -->
+        <div *ngIf="currentStep === 1" class="form-section">
+          <h2>Datos de Envío</h2>
+
+          <form [formGroup]="shippingForm">
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Nombre *</label>
+                <input type="text" formControlName="firstName" placeholder="Fernando"
+                  [class.error]="firstName?.invalid && firstName?.touched">
+                <div *ngIf="firstName?.invalid && firstName?.touched" class="error-message">
+                  <span *ngIf="firstName?.errors?.['required']">Campo obligatorio</span>
+                  <span *ngIf="firstName?.errors?.['minlength']">Mínimo 2 caracteres</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Apellidos *</label>
+                <input type="text" formControlName="lastName" placeholder="Martínez Cordero"
+                  [class.error]="lastName?.invalid && lastName?.touched">
+                <div *ngIf="lastName?.invalid && lastName?.touched" class="error-message">
+                  <span *ngIf="lastName?.errors?.['required']">Campo obligatorio</span>
+                  <span *ngIf="lastName?.errors?.['minlength']">Mínimo 2 caracteres</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Email *</label>
+                <input type="email" formControlName="email" placeholder="fernando@gmail.com"
+                  [class.error]="email?.invalid && email?.touched">
+                <div *ngIf="email?.invalid && email?.touched" class="error-message">
+                  <span *ngIf="email?.errors?.['required']">Campo obligatorio</span>
+                  <span *ngIf="email?.errors?.['email']">Email no válido</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Teléfono *</label>
+                <input type="tel" formControlName="phone" placeholder="612345678"
+                  [class.error]="phone?.invalid && phone?.touched">
+                <div *ngIf="phone?.invalid && phone?.touched" class="error-message">
+                  <span *ngIf="phone?.errors?.['required']">Campo obligatorio</span>
+                  <span *ngIf="phone?.errors?.['pattern']">Debe tener 9 dígitos</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label>Dirección completa *</label>
+              <input type="text" formControlName="address" placeholder="Calle Mayor 123, 2ºA"
+                [class.error]="address?.invalid && address?.touched">
+              <div *ngIf="address?.invalid && address?.touched" class="error-message">
+                <span *ngIf="address?.errors?.['required']">Campo obligatorio</span>
+                <span *ngIf="address?.errors?.['minlength']">Dirección demasiado corta</span>
+              </div>
+            </div>
+
+            <div class="form-row three-cols">
+              <div class="form-group">
+                <label>Ciudad *</label>
+                <input type="text" formControlName="city" placeholder="Sevilla"
+                  [class.error]="city?.invalid && city?.touched">
+                <div *ngIf="city?.invalid && city?.touched" class="error-message">
+                  <span *ngIf="city?.errors?.['required']">Campo obligatorio</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Código Postal *</label>
+                <input type="text" formControlName="postalCode" placeholder="41701"
+                  [class.error]="postalCode?.invalid && postalCode?.touched">
+                <div *ngIf="postalCode?.invalid && postalCode?.touched" class="error-message">
+                  <span *ngIf="postalCode?.errors?.['required']">Campo obligatorio</span>
+                  <span *ngIf="postalCode?.errors?.['pattern']">Debe tener 5 dígitos</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Provincia *</label>
+                <select formControlName="province" [class.error]="province?.invalid && province?.touched">
+                  <option value="">Seleccionar</option>
+                  <option>Madrid</option>
+                  <option>Barcelona</option>
+                  <option>Valencia</option>
+                  <option>Sevilla</option>
+                  <option>Zaragoza</option>
+                  <option>Málaga</option>
+                  <option>Murcia</option>
+                  <option>Alicante</option>
+                  <option>Bilbao</option>
+                  <option>Otra</option>
+                </select>
+                <div *ngIf="province?.invalid && province?.touched" class="error-message">
+                  <span *ngIf="province?.errors?.['required']">Campo obligatorio</span>
+                </div>
+              </div>
+            </div>
+
+          </form>
+
+          <div class="form-actions">
+            <button class="btn-back-step" (click)="goToCart()">Volver al carrito</button>
+            <button class="btn-next" (click)="nextStep()">Continuar al pago</button>
+          </div>
+        </div>
+
+        <!-- PASO 2: Datos de pago -->
+        <div *ngIf="currentStep === 2" class="form-section">
+          <h2>Datos de Pago</h2>
+
+          <div class="security-badge">
+            🔒 Pago 100% seguro y encriptado
+          </div>
+
+          <form [formGroup]="paymentForm">
+
+            <div class="form-group full-width">
+              <label>Nombre en la tarjeta *</label>
+              <input type="text" formControlName="cardName"
+                placeholder="FERNANDO MARTÍNEZ CORDERO"
+                style="text-transform: uppercase"
+                [class.error]="cardName?.invalid && cardName?.touched">
+              <div *ngIf="cardName?.invalid && cardName?.touched" class="error-message">
+                <span *ngIf="cardName?.errors?.['required']">Campo obligatorio</span>
+                <span *ngIf="cardName?.errors?.['minlength']">Mínimo 3 caracteres</span>
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label>Número de tarjeta *</label>
+              <div class="card-input-wrapper">
+                <input type="text" formControlName="cardNumber"
+                  placeholder="1234567890123456"
+                  maxlength="16"
+                  [class.error]="cardNumber?.invalid && cardNumber?.touched">
+                <div class="card-icons">💳</div>
+              </div>
+              <div *ngIf="cardNumber?.invalid && cardNumber?.touched" class="error-message">
+                <span *ngIf="cardNumber?.errors?.['required']">Campo obligatorio</span>
+                <span *ngIf="cardNumber?.errors?.['pattern']">Debe tener 16 dígitos</span>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Fecha de caducidad *</label>
+                <input type="text" formControlName="expiryDate"
+                  placeholder="MM/AA"
+                  maxlength="5"
+                  [class.error]="expiryDate?.invalid && expiryDate?.touched">
+                <div *ngIf="expiryDate?.invalid && expiryDate?.touched" class="error-message">
+                  <span *ngIf="expiryDate?.errors?.['required']">Campo obligatorio</span>
+                  <span *ngIf="expiryDate?.errors?.['pattern']">Formato MM/AA</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>CVV *</label>
+                <input type="password" formControlName="cvv"
+                  placeholder="123"
+                  maxlength="4"
+                  [class.error]="cvv?.invalid && cvv?.touched">
+                <div *ngIf="cvv?.invalid && cvv?.touched" class="error-message">
+                  <span *ngIf="cvv?.errors?.['required']">Campo obligatorio</span>
+                  <span *ngIf="cvv?.errors?.['pattern']">3 o 4 dígitos</span>
+                </div>
+              </div>
+            </div>
+
+          </form>
+
+          <div class="form-actions">
+            <button class="btn-back-step" (click)="prevStep()">Volver</button>
+            <button class="btn-next" (click)="nextStep()">Revisar pedido</button>
+          </div>
+        </div>
+
+        <!-- PASO 3: Confirmación -->
+        <div *ngIf="currentStep === 3" class="form-section">
+          <h2>Revisar y Confirmar</h2>
+
+          <!-- Resumen de envío -->
+          <div class="review-section">
+            <div class="review-header">
+              <h3>Datos de Envío</h3>
+              <button class="btn-edit" (click)="currentStep = 1">Editar</button>
+            </div>
+            <div class="review-content">
+              <p><strong>{{ shippingForm.value.firstName }} {{ shippingForm.value.lastName }}</strong></p>
+              <p>{{ shippingForm.value.address }}</p>
+              <p>{{ shippingForm.value.postalCode }} {{ shippingForm.value.city }}, {{ shippingForm.value.province }}</p>
+              <p>{{ shippingForm.value.email }}</p>
+              <p>{{ shippingForm.value.phone }}</p>
+            </div>
+          </div>
+
+          <!-- Resumen de pago -->
+          <div class="review-section">
+            <div class="review-header">
+              <h3>Método de Pago</h3>
+              <button class="btn-edit" (click)="currentStep = 2">Editar</button>
+            </div>
+            <div class="review-content">
+              <p>Tarjeta terminada en
+                <strong>{{ paymentForm.value.cardNumber?.slice(-4) }}</strong>
+              </p>
+              <p>Titular: {{ paymentForm.value.cardName }}</p>
+              <p>Caduca: {{ paymentForm.value.expiryDate }}</p>
+            </div>
+          </div>
+
+          <!-- Estado de procesamiento -->
+          <div *ngIf="isProcessing" class="processing-state">
+            <div class="spinner"></div>
+            <p>Procesando tu pago...</p>
+            <p class="processing-sub">Por favor, no cierres esta página</p>
+          </div>
+
+          <div class="form-actions" *ngIf="!isProcessing">
+            <button class="btn-back-step" (click)="prevStep()">Volver</button>
+            <button class="btn-confirm" (click)="confirmPayment()">
+              Confirmar y Pagar {{ total | currency:'EUR':'symbol':'1.2-2' }}
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- COLUMNA DERECHA: Resumen del pedido -->
+      <div class="order-summary">
+        <h3>Tu Pedido</h3>
+
+        <div class="order-items">
+          <div *ngFor="let item of cartItems" class="order-item">
+            <div class="order-item-info">
+              <img [src]="item.product.imageUrl" [alt]="item.product.name">
+              <div>
+                <p class="order-item-name">{{ item.product.name }}</p>
+                <p class="order-item-qty">Cantidad: {{ item.quantity }}</p>
+              </div>
+            </div>
+            <span class="order-item-price">
+              {{ (item.product.price * item.quantity) | currency:'EUR':'symbol':'1.2-2' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="order-totals">
+          <div class="total-line">
+            <span>Subtotal</span>
+            <span>{{ subtotal | currency:'EUR':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="total-line">
+            <span>Envío</span>
+            <span [class.free]="shippingCost === 0">
+              {{ shippingCost === 0 ? 'GRATIS' : (shippingCost | currency:'EUR':'symbol':'1.2-2') }}
+            </span>
+          </div>
+          <div class="total-final">
+            <span>Total</span>
+            <span>{{ total | currency:'EUR':'symbol':'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <!-- Garantías -->
+        <div class="guarantees">
+          <div class="guarantee">✅ Piezas certificadas</div>
+          <div class="guarantee">🔒 Pago seguro</div>
+          <div class="guarantee">🚚 Envío 24-48h</div>
+          <div class="guarantee">↩️ Devolución 30 días</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

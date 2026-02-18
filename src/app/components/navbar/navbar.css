@@ -1,0 +1,141 @@
+.navbar {
+  background-color: #000;
+  color: white;
+  padding: 1.2rem 0;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  position: fixed;        /* ← Fijo en la parte superior */
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;         /* ← Por encima de todo */
+  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.95);
+}
+
+.navbar-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 3rem;
+}
+
+.logo {
+  margin: 0;
+  font-size: 1.8rem;      /* ← Más grande */
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.logo:hover {
+  opacity: 0.8;
+  transform: scale(1.02);
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  gap: 3rem;              /* ← Más espacio entre enlaces */
+  margin: 0;
+  padding: 0;
+  align-items: center;
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.1rem;      /* ← Texto más grande */
+  transition: color 0.3s, transform 0.3s;
+  position: relative;
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #0071e3;
+  transition: width 0.3s;
+}
+
+.nav-links a:hover::after,
+.nav-links a.active::after {
+  width: 100%;
+}
+
+.nav-links a:hover {
+  color: #0071e3;
+  transform: translateY(-2px);
+}
+
+.nav-links a.active {
+  color: #0071e3;
+}
+
+/* Carrito */
+.cart-icon {
+  position: relative;
+  font-size: 1.8rem;      /* ← Más grande */
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.2s;
+  display: flex;
+  align-items: center;
+  margin-left: 2rem;
+}
+
+.cart-icon:hover {
+  transform: scale(1.15);
+}
+
+.cart-badge {
+  position: absolute;
+  top: -10px;
+  right: -12px;
+  background: linear-gradient(135deg, #0071e3, #00c6ff);
+  color: white;
+  border-radius: 50%;
+  width: 24px;            /* ← Más grande */
+  height: 24px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 113, 227, 0.5);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar-container {
+    padding: 0 1.5rem;
+  }
+
+  .logo {
+    font-size: 1.4rem;
+  }
+
+  .nav-links {
+    gap: 1.5rem;
+  }
+
+  .nav-links a {
+    font-size: 0.95rem;
+  }
+
+  .cart-icon {
+    font-size: 1.5rem;
+    margin-left: 1rem;
+  }
+}
