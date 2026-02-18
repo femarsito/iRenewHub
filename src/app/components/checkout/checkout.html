@@ -1,6 +1,6 @@
 <div class="container">
 
-  <!-- PEDIDO COMPLETADO -->
+  
   <!-- PEDIDO COMPLETADO -->
 <div *ngIf="orderCompleted" class="order-success">
   <div class="success-icon">🎉</div>
@@ -283,7 +283,7 @@
 
           <div class="form-actions" *ngIf="!isProcessing">
             <button class="btn-back-step" (click)="prevStep()">Volver</button>
-            <button class="btn-confirm" (click)="confirmPayment()">
+            <button class="btn-confirm" (click)="nextStep()">  
               Confirmar y Pagar {{ total | currency:'EUR':'symbol':'1.2-2' }}
             </button>
           </div>

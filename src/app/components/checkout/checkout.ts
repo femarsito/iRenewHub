@@ -18,24 +18,24 @@ interface OrderSummaryItem {
 })
 export class Checkout implements OnInit {
 
-  // Control de pasos del proceso de pago
+  // control de pasos del proceso de pago
   currentStep: number = 1;
   totalSteps: number = 3;
 
-  // Formularios
+  // formularios
   shippingForm!: FormGroup;
   paymentForm!: FormGroup;
 
-  // Estado del carrito
+  // estado del carrito
   cartItems: CartItem[] = [];
   subtotal: number = 0;
   shippingCost: number = 0;
   total: number = 0;
 
-  // Snapshot del pedido para mostrar después de completar
-  orderSummary: OrderSummaryItem[] = [];      // ← AÑADIR
-  totalSnapshot: number = 0;                   // ← AÑADIR
-  shippingCostSnapshot: number = 0;            // ← AÑADIR
+  // snapshot del pedido para mostrar después de completar
+  orderSummary: OrderSummaryItem[] = [];
+  totalSnapshot: number = 0;
+  shippingCostSnapshot: number = 0;
 
   // Estado del proceso
   isProcessing: boolean = false;
@@ -105,6 +105,7 @@ export class Checkout implements OnInit {
 
   // avanza al siguiente paso
   nextStep(): void {
+    // valida según el paso actual
     if (this.currentStep === 1) {
       if (this.shippingForm.invalid) {
         Object.keys(this.shippingForm.controls).forEach(key => {
@@ -112,11 +113,23 @@ export class Checkout implements OnInit {
         });
         return;
       }
+      this.currentStep = 2;
+    } 
+    else if (this.currentStep === 2) {
+      if (this.paymentForm.invalid) {
+        Object.keys(this.paymentForm.controls).forEach(key => {
+          this.paymentForm.get(key)?.markAsTouched();
+        });
+        return;
+      }
+      this.currentStep = 3;
     }
-    if (this.currentStep < this.totalSteps) {
-      this.currentStep++;
-      window.scrollTo(0, 0);
+    else if (this.currentStep === 3) {
+      // en el paso 3, llamamos a confirmPayment
+      this.confirmPayment();
     }
+    
+    window.scrollTo(0, 0);
   }
 
   // retrocede al paso anterior
@@ -129,13 +142,6 @@ export class Checkout implements OnInit {
 
   // confirmar el pago
   confirmPayment(): void {
-    if (this.paymentForm.invalid) {
-      Object.keys(this.paymentForm.controls).forEach(key => {
-        this.paymentForm.get(key)?.markAsTouched();
-      });
-      return;
-    }
-
     this.isProcessing = true;
 
     this.orderSummary = this.cartItems.map(item => ({
@@ -156,6 +162,7 @@ export class Checkout implements OnInit {
       this.cartService.clearCart();
     }, 3000);
   }
+
   // genera un número de pedido aleatorio
   generateOrderNumber(): string {
     const timestamp = Date.now().toString().slice(-6);

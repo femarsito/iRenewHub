@@ -21,7 +21,6 @@ import { ProductService } from './services/product';
 import { CartService } from './services/cart';
 import { InMemoryDataService } from './services/in-memory-data.service';
 
-// Registrar locale español
 registerLocaleData(localeEs);                                      
 
 @NgModule({
