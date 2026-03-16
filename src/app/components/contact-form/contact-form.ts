@@ -21,12 +21,14 @@ export class ContactForm implements OnInit {
   }
 
   initializeForm(): void {
+    // FormBuilder amplifica la creacion de formularios reactivos.
+    // FormGroup representa el formulario completo
     this.contactForm = this.formBuilder.group({
-      name: ['', [Validators.required, Validators.minLength(3)]],
-      email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.required, Validators.pattern(/^[0-9]{9}$/)]],
+      name: ['', [Validators.required, Validators.minLength(3)]], // Valida que min 3 caracteres
+      email: ['', [Validators.required, Validators.email]], // Valida que sea un email
+      phone: ['', [Validators.required, Validators.pattern(/^[0-9]{9}$/)]], //Patron personalizado de 9 caracteres
       subject: ['', [Validators.required, Validators.minLength(5)]],
-      message: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(500)]]
+      message: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(500)]] // Max 500 caracteres
     });
   }
 
@@ -52,7 +54,8 @@ export class ContactForm implements OnInit {
   }
 
   onSubmit(): void {
-    // marca todos los campos como tocados para mostrar errores
+    // Validacion antes de enviar:
+    // Marca todos los campos como tocados para mostrar errores
     if (this.contactForm.invalid) {
       Object.keys(this.contactForm.controls).forEach(key => {
         this.contactForm.get(key)?.markAsTouched();

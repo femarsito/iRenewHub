@@ -18,11 +18,15 @@ export class ProductList implements OnInit {
   isLoading: boolean = false;
 
   constructor(
+    // inyecta el servicio para acceder a los productos
     private productService: ProductService,
+    // inyecta el router para navegar a detalles y la ruta actual para leer parámetros
     private router: Router,
     private route: ActivatedRoute  
   ) { }
 
+  // Se ejecuta automaticamente cuando el componente se inicializa
+  // Cargando los productos y categorias.
   ngOnInit(): void {
     this.loadProducts();
     
@@ -41,8 +45,9 @@ export class ProductList implements OnInit {
   loadProducts(): void {
     this.isLoading = true;
     
+    // Subscripción al observable
     this.productService.getProducts().subscribe({
-      next: (data: Product[]) => {
+      next: (data: Product[]) => { // cuando llegan los datos, los asigna a las variables del componente
         this.products = data;
         this.filteredProducts = data;
         
@@ -54,7 +59,7 @@ export class ProductList implements OnInit {
         console.log('Productos cargados:', data.length);
         console.log('Categorías:', this.categories);
       },
-      error: (error: any) => {
+      error: (error: any) => { // maneja errores de carga
         console.error('Error al cargar productos:', error);
         this.isLoading = false;
       }

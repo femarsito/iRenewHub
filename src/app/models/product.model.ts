@@ -1,3 +1,5 @@
+// Define que propiedades tiene un producto en la aplicación
+
 export interface Product {
   id: number;
   name: string;

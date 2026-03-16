@@ -1,16 +1,18 @@
+// 
+
 import { NgModule, LOCALE_ID } from '@angular/core';              
-import { BrowserModule } from '@angular/platform-browser';
-import { ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
-import { HttpClientInMemoryWebApiModule } from 'angular-in-memory-web-api';
 import { registerLocaleData } from '@angular/common';              
 import localeEs from '@angular/common/locales/es';                 
 
 import { AppRoutingModule } from './app-routing-module';
-import { App } from './app';
+import { BrowserModule } from '@angular/platform-browser';
+import { ReactiveFormsModule } from '@angular/forms'; // Para formularios reactivos
+import { HttpClientModule } from '@angular/common/http';
+import { HttpClientInMemoryWebApiModule } from 'angular-in-memory-web-api';
 
-import { Navbar } from './components/navbar/navbar';
+import { App } from './app';
 import { Home } from './components/home/home';
+import { Navbar } from './components/navbar/navbar';
 import { ProductList } from './components/product-list/product-list';
 import { ProductDetail } from './components/product-detail/product-detail';
 import { ContactForm } from './components/contact-form/contact-form';

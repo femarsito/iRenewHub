@@ -8,7 +8,11 @@ import { Cart } from './components/cart/cart';
 import { Checkout } from './components/checkout/checkout';        
 
 const routes: Routes = [
-  { path: '', redirectTo: '/home', pathMatch: 'full' },
+  // Redirige a /home por defecto
+  { path: '', redirectTo: '/home', pathMatch: 'full' }, 
+  
+  // Rutas para los componentes principales
+  // Cuando la URL tiene /products muestra ProductList
   { path: 'home', component: Home },
   { path: 'products', component: ProductList },
   { path: 'product/:id', component: ProductDetail },

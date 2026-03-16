@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+// Servicio que nos da acceso a la informacion de la ruta actual
 import { ActivatedRoute, Router } from '@angular/router';
 import { Product } from '../../models/product.model';
 import { ProductService } from '../../services/product';
@@ -13,8 +14,8 @@ import { CartService } from '../../services/cart';
 export class ProductDetail implements OnInit {
 
   product: Product | undefined;
-  isLoading: boolean = false;
-  errorMessage: string = '';
+  isLoading: boolean = false; //Muestra un indicador de que esta cargando
+  errorMessage: string = ''; // Guarda mensajes de error si algo falla
   addedToCart: boolean = false;                                     
 
   constructor(
@@ -31,8 +32,10 @@ export class ProductDetail implements OnInit {
   loadProductDetail(): void {
     this.isLoading = true;
 
+    // Obtiene el ID del producto en el que se encuentra /products/1, /products/2, etc.
     const id = Number(this.route.snapshot.paramMap.get('id'));
 
+    // Esto previene errores sia lguien intenta acceder a /products/abc o /products/ sin un ID válido, mostrando un mensaje de error en lugar de intentar cargar un producto inexistente.
     if (!id) {
       this.errorMessage = 'ID de producto no válido';
       this.isLoading = false;
@@ -40,6 +43,8 @@ export class ProductDetail implements OnInit {
     }
 
     this.productService.getProductById(id).subscribe({
+
+      // Undefined por si se busca un producto que no existe
       next: (data: Product | undefined) => {
         if (data) {
           this.product = data;

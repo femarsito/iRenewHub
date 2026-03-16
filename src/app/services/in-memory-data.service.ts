@@ -1,3 +1,6 @@
+// Implementacion de HttpClient y simular un backend real
+// Esto es una libreria que simula un servicio backend en memoria 
+// intercepta las peticiones HTTP y las responde como si hubiera un servidor real
 import { Injectable } from '@angular/core';
 import { InMemoryDbService } from 'angular-in-memory-web-api';
 import { Product } from '../models/product.model';
@@ -6,6 +9,15 @@ import { Product } from '../models/product.model';
   providedIn: 'root'
 })
 export class InMemoryDataService implements InMemoryDbService {
+
+// Creacion de una BBDD en memoria. La API simulada creara 
+// automaticamente estos endpoints:
+
+// GET /api/products -> devuelve la lista de productos
+// GET /api/products/1 -> devuelve el producto con id 1
+// POST /api/products -> agrega un nuevo producto a la lista
+// PUT /api/products/1 -> actualiza el producto con id 1
+// DELETE /api/products/1 -> elimina el producto con id 1
 
   createDb() {
     const products: Product[] = [

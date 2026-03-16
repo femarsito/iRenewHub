@@ -1,12 +1,19 @@
+
+// AQUI ES DONDE CENTRALIZAMOS LOS DATOS DE PRODUCTOS.
+// Este servicio usara inyección de dependencias 
+
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators'; //Libreria para manejar flujos de datos asincronos y errores
 import { Product } from '../models/product.model';
 
+// Este servicio se puede inyectar en cualquier parte de la aplicación 
+// Es un singleton, una unica instancia compartida en toda la app 
 @Injectable({
   providedIn: 'root'
 })
+
 export class ProductService {
 
   private apiUrl = 'api/products';  // URL del backend simulado
@@ -15,13 +22,15 @@ export class ProductService {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' })
   };
 
+  //HTTPCliente es el servicio de Angular para hacer peticiones
+  // GET, POST, PUT, DELETE
   constructor(private http: HttpClient) { }
 
   // GET: obtiene todos los productos
-  getProducts(): Observable<Product[]> {
+  getProducts(): Observable<Product[]> { // Observable dice esta funcion devuelve un flujo de datos asincrono que eventualmente emitira un array de productos
     return this.http.get<Product[]>(this.apiUrl)
       .pipe(
-        tap(_ => console.log('Productos obtenidos desde la API')),
+        tap(_ => console.log('Productos obtenidos desde la API')),// Permite ejecutar codigo sin modificar el Observable
         catchError(this.handleError<Product[]>('getProducts', []))
       );
   }
@@ -30,7 +39,7 @@ export class ProductService {
   getProductById(id: number): Observable<Product | undefined> {
     const url = `${this.apiUrl}/${id}`;
     return this.http.get<Product>(url)
-      .pipe(
+      .pipe( //encadena operadores RxJS
         tap(_ => console.log(`Producto obtenido: id=${id}`)),
         catchError(this.handleError<Product>(`getProductById id=${id}`))
       );
