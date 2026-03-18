@@ -13,7 +13,7 @@ export class CartService {
 
   constructor() { }
 
-  // obtener los items actuales del carrito
+  // obtener los items actuales del carrit
   getCartItems(): CartItem[] {
     return this.cartItemsSubject.getValue();
   }
