@@ -1,6 +1,8 @@
 package com.irenewhub.backend.service;
 
+import com.irenewhub.backend.dto.ProductResponse;
 import com.irenewhub.backend.entity.Product;
+import com.irenewhub.backend.exception.ResourceNotFoundException;
 import com.irenewhub.backend.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -8,42 +10,48 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Service // marca la clase como componente de logica de negocio, Spring lo detecta y lo registra en su contenedor
-
-@RequiredArgsConstructor // (Lombok), genera el constructor con todos los campos final.
-/*Equivale a este constructor:
-
-* public ProductService(ProductRepository productRepository) {
-    this.productRepository = productRepository;
-}   */
-
+@Service //marca esta clase como componente de logica de negocio. Spring le detecta y la registra en su contenedor
+@RequiredArgsConstructor // (Lombok), genera el constructor con todos los campos, con su inyeccion de dependencias
 public class ProductService {
 
     private final ProductRepository productRepository;
 
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    @Transactional(readOnly = true) //Transaccional garantiza que si algo falla a mitad de la operacion la bdd vuelve al estado anteripr
+    public List<ProductResponse> getAllProducts() {
+        return productRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
-    public Product getProductById(Long id) {
-        //findById() - orElseThrow devuelve un Optional <Product> porque el producto puede no existir.ç
-        // si existe lo devuelve , si no lanza una excepcion
-        return productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado con id: " + id));
+    @Transactional(readOnly = true)
+    public ProductResponse getProductById(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Producto no encontrado con id: " + id));
+        return toResponse(product);
     }
 
-    public List<Product> getProductsByCategory(String category) {
-        return productRepository.findByCategory(category);
-    }
-
-    @Transactional //Garantiza que si algo falla a mitad de la operacion la bdd vuelve al estado anterior
-    public Product createProduct(Product product) {
-        return productRepository.save(product);
+    @Transactional(readOnly = true)
+    public List<ProductResponse> getProductsByCategory(String category) {
+        return productRepository.findByCategory(category)
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Transactional
-    public Product updateProduct(Long id, Product productDetails) {
-        Product product = getProductById(id);
+    public ProductResponse createProduct(Product product) {
+        Product saved = productRepository.save(product);
+        return toResponse(saved);
+    }
+
+    @Transactional
+    public ProductResponse updateProduct(Long id, Product productDetails) {
+        //Elsethrow - findById(), devuelve un Optional<Product> porqueel producto puede no existir
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Producto no encontrado con id: " + id));
 
         product.setName(productDetails.getName());
         product.setCategory(productDetails.getCategory());
@@ -58,12 +66,33 @@ public class ProductService {
         product.setCondition(productDetails.getCondition());
         product.setManufacturer(productDetails.getManufacturer());
 
-        return productRepository.save(product);
+        return toResponse(productRepository.save(product));
     }
 
     @Transactional
     public void deleteProduct(Long id) {
-        Product product = getProductById(id);
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Producto no encontrado con id: " + id));
         productRepository.delete(product);
+    }
+
+    // Convierte entidad → DTO (dentro de la transacción, sesión abierta)
+    private ProductResponse toResponse(Product product) {
+        return ProductResponse.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .category(product.getCategory())
+                .price(product.getPrice())
+                .originalPrice(product.getOriginalPrice())
+                .description(product.getDescription())
+                .imageUrl(product.getImageUrl())
+                .stock(product.getStock())
+                .isOem(product.getIsOem())
+                .compatibility(product.getCompatibility())
+                .warranty(product.getWarranty())
+                .condition(product.getCondition())
+                .manufacturer(product.getManufacturer())
+                .build();
     }
 }
