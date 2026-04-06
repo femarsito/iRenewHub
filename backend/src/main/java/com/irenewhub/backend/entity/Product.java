@@ -53,10 +53,8 @@ public class Product {
 
     // Esto es para la lista de compatibilidades
     // ["iPhone 14 Pro, iPhone 14"]
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
-            //Como es una lista simple de string, JPA la guarda en una tabla
-            //separada product_compatibility con (FK) a products
             name = "product_compatibility",
             joinColumns = @JoinColumn(name = "product_id")
     )

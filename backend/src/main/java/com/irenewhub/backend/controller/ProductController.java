@@ -1,5 +1,6 @@
 package com.irenewhub.backend.controller;
 
+import com.irenewhub.backend.dto.ProductResponse;
 import com.irenewhub.backend.entity.Product;
 import com.irenewhub.backend.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -9,20 +10,21 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController //combina @Controller + @ResponseBody. Todos devuelven datos JSON y no HTML.
-@RequestMapping("/api/products") //todas las rutas de este controlador empiezan por eso
+@RestController //Combina @Controller + @ResponseBody, significa que todos los metodos devuelven datos JSON, no HTML
+@RequestMapping("/api/products") //todas las rutas de este controlador empiezan por  /api/products
 @RequiredArgsConstructor
 public class ProductController {
 
     private final ProductService productService;
 
-    /*@GetMapping, @PostMapping, @PutMapping, @DeleteMapping:
-    mapean métodos HTTP a métodos Java. Esto es exactamente lo que tu Angular llama.
+    /*@GetMapping, @PostMapping, @PutMapping, @DeleteMapping
+    * mapean métodos HTTP a métodos Java. Esto es exactamente lo que tu Angular llama.
     */
+
     @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts(
-            //@RequestParam — captura parámetros de query. GET /api/products?category=Baterías → category = "Baterías".
-            @RequestParam(required = false) String category) {
+    //ResponseEntity, permite controlar el codigo HTTP de respuesta  (200 OK, 201 CREATED, 204 NO CONTENT...)
+    public ResponseEntity<List<ProductResponse>> getAllProducts(
+            @RequestParam(required = false) String category) { //RequestParam captura parametros de query. GET /api/products/? category=Baterias -> category = ¨Baterias¨
 
         if (category != null && !category.isEmpty()) {
             return ResponseEntity.ok(productService.getProductsByCategory(category));
@@ -31,23 +33,20 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    //@PathVariable captura el {id} de la URL. GET /api/products/3 → id = 3.
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) { //PathVariable captura el id de la URL. GET /api/products/3 -> id=3
         return ResponseEntity.ok(productService.getProductById(id));
     }
 
     @PostMapping
-    // @RequestBody — convierte el JSON del cuerpo de la petición en un objeto Java automáticamente.
-    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
-        Product created = productService.createProduct(product);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    public ResponseEntity<ProductResponse> createProduct(@RequestBody Product product) { //RequestBody convierte el JSON del cuerpo de la petición en un objeto Java
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(productService.createProduct(product));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(
-            @PathVariable Long id,
-            //ResponseEntity — te permite controlar el código HTTP de respuesta. 200 OK, 201 CREATED, 204 No Content, etc.
-            @RequestBody Product product) {
+    public ResponseEntity<ProductResponse> updateProduct(
+            @PathVariable Long id, //Captura parametros de query. GET /api/products/
+            @RequestBody Product product) { //convierte el JSON del cuerpo de la peticion en una Objeto de JAVA
         return ResponseEntity.ok(productService.updateProduct(id, product));
     }
 
