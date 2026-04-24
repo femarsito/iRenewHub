@@ -1,14 +1,11 @@
-// 
-
-import { NgModule, LOCALE_ID } from '@angular/core';              
-import { registerLocaleData } from '@angular/common';              
-import localeEs from '@angular/common/locales/es';                 
+import { NgModule, LOCALE_ID } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeEs from '@angular/common/locales/es';
 
 import { AppRoutingModule } from './app-routing-module';
 import { BrowserModule } from '@angular/platform-browser';
-import { ReactiveFormsModule } from '@angular/forms'; // Para formularios reactivos
+import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { HttpClientInMemoryWebApiModule } from 'angular-in-memory-web-api';
 
 import { App } from './app';
 import { Home } from './components/home/home';
@@ -21,9 +18,8 @@ import { Checkout } from './components/checkout/checkout';
 
 import { ProductService } from './services/product';
 import { CartService } from './services/cart';
-import { InMemoryDataService } from './services/in-memory-data.service';
 
-registerLocaleData(localeEs);                                      
+registerLocaleData(localeEs);
 
 @NgModule({
   declarations: [
@@ -40,19 +36,12 @@ registerLocaleData(localeEs);
     BrowserModule,
     AppRoutingModule,
     ReactiveFormsModule,
-    HttpClientModule,
-    HttpClientInMemoryWebApiModule.forRoot(
-      InMemoryDataService,
-      {
-        dataEncapsulation: false,
-        passThruUnknownUrl: true
-      }
-    )
+    HttpClientModule
   ],
   providers: [
     ProductService,
     CartService,
-    { provide: LOCALE_ID, useValue: 'es' }                       
+    { provide: LOCALE_ID, useValue: 'es' }
   ],
   bootstrap: [App]
 })
