@@ -10,4 +10,7 @@ import java.util.List;
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findByUserEmailOrderByCreatedAtDesc(String email);
+
+    // Todos los pedidos ordenados por fecha más reciente (para el panel admin)
+    List<Order> findAllByOrderByCreatedAtDesc();
 }

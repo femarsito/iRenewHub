@@ -1,0 +1,111 @@
+.cupones-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 2rem 4rem;
+}
+
+.cupones-header {
+  margin-bottom: 2rem;
+}
+
+.cupones-header h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1d1d1f;
+}
+
+.cupones-subtitle {
+  color: #86868b;
+  font-size: 1rem;
+  margin-top: 0.3rem;
+}
+
+.cupones-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.cupon-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem 1.8rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+  border: 1px solid rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.cupon-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: linear-gradient(135deg, #0071e3, #00c6ff);
+}
+
+.cupon-card.inactivo::before {
+  background: #d2d2d7;
+}
+
+.cupon-card.inactivo {
+  opacity: 0.6;
+}
+
+.cupon-descuento {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0071e3;
+  min-width: 70px;
+  text-align: center;
+}
+
+.cupon-card.inactivo .cupon-descuento {
+  color: #86868b;
+}
+
+.cupon-info {
+  flex: 1;
+}
+
+.cupon-descripcion {
+  font-size: 0.95rem;
+  color: #444;
+  margin: 0 0 0.6rem 0;
+}
+
+.cupon-codigo-box {
+  display: inline-block;
+  background: #f0f4ff;
+  border: 1px dashed #0071e3;
+  border-radius: 6px;
+  padding: 0.3rem 0.8rem;
+}
+
+.cupon-codigo {
+  font-family: monospace;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0071e3;
+  letter-spacing: 1px;
+}
+
+.cupon-estado {
+  min-width: 90px;
+  text-align: right;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.estado-activo {
+  color: #34c759;
+}
+
+.estado-inactivo {
+  color: #86868b;
+}

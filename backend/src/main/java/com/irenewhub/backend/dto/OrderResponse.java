@@ -17,6 +17,8 @@ public class OrderResponse {
 
     private Long id;
     private String orderNumber;
+    private String customerName;   // "Fernando Martínez" — nombre del cliente
+    private String customerEmail;  // email del cliente
     private String status;
     private BigDecimal subtotal;
     private BigDecimal shippingCost;

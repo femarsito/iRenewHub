@@ -1,0 +1,315 @@
+<div class="admin-container">
+
+  <!-- ─── CABECERA ──────────────────────────────────────────────────────────── -->
+  <div class="admin-header">
+    <h1>Panel de Administración</h1>
+    <p class="admin-subtitle">Bienvenido, {{ nombreAdmin }}.</p>
+  </div>
+
+  <!-- ─── TARJETAS DE ESTADÍSTICAS (clic para ir a esa sección) ───────────── -->
+  <div class="stats-grid">
+    <div class="stat-card" (click)="activarTab('productos')" [class.activa]="tabActivo==='productos'">
+      <div class="stat-icon">📦</div>
+      <div class="stat-info">
+        <span class="stat-number">{{ totalProductos }}</span>
+        <span class="stat-label">Productos</span>
+      </div>
+    </div>
+    <div class="stat-card" (click)="activarTab('pedidos')" [class.activa]="tabActivo==='pedidos'">
+      <div class="stat-icon">🛒</div>
+      <div class="stat-info">
+        <span class="stat-number">{{ totalPedidos }}</span>
+        <span class="stat-label">Pedidos</span>
+      </div>
+    </div>
+    <div class="stat-card" (click)="activarTab('categorias')" [class.activa]="tabActivo==='categorias'">
+      <div class="stat-icon">🗂️</div>
+      <div class="stat-info">
+        <span class="stat-number">{{ totalCategorias }}</span>
+        <span class="stat-label">Categorías</span>
+      </div>
+    </div>
+    <div class="stat-card" (click)="activarTab('usuarios')" [class.activa]="tabActivo==='usuarios'">
+      <div class="stat-icon">👥</div>
+      <div class="stat-info">
+        <span class="stat-number">{{ totalUsuarios !== null ? totalUsuarios : '...' }}</span>
+        <span class="stat-label">Usuarios</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── PESTAÑAS ─────────────────────────────────────────────────────────── -->
+  <div class="admin-tabs">
+    <button (click)="activarTab('productos')"  [class.activo]="tabActivo==='productos'">📦 Productos</button>
+    <button (click)="activarTab('pedidos')"    [class.activo]="tabActivo==='pedidos'">🛒 Pedidos</button>
+    <button (click)="activarTab('categorias')" [class.activo]="tabActivo==='categorias'">🗂️ Categorías</button>
+    <button (click)="activarTab('usuarios')"   [class.activo]="tabActivo==='usuarios'">👥 Usuarios</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       PESTAÑA: PRODUCTOS
+  ════════════════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="tabActivo === 'productos'" class="tab-content">
+
+    <div class="tab-toolbar">
+      <h2>Gestión de Productos</h2>
+      <button class="btn-nuevo" (click)="abrirFormProducto()">+ Nuevo Producto</button>
+    </div>
+
+    <div *ngIf="msgProducto"   class="banner-exito">✓ {{ msgProducto }}</div>
+    <div *ngIf="errorProducto" class="banner-error">{{ errorProducto }}</div>
+
+    <!-- Formulario de nuevo/edición producto -->
+    <div *ngIf="productoForm" class="form-panel">
+      <div class="form-panel-header">
+        <h3>{{ productoForm.id ? 'Editar producto' : 'Nuevo producto' }}</h3>
+        <button class="btn-cerrar" (click)="cerrarFormProducto()">✕</button>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input type="text" [(ngModel)]="productoForm.name" placeholder="Pantalla OLED iPhone 14">
+        </div>
+        <div class="form-group">
+          <label>Categoría *</label>
+          <input type="text" [(ngModel)]="productoForm.category" placeholder="Pantallas">
+        </div>
+        <div class="form-group">
+          <label>Precio (€) *</label>
+          <input type="number" [(ngModel)]="productoForm.price" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+          <label>Precio original (€) <span class="opcional">opcional</span></label>
+          <input type="number" [(ngModel)]="productoForm.originalPrice" step="0.01" min="0">
+        </div>
+        <div class="form-group full">
+          <label>Descripción</label>
+          <textarea [(ngModel)]="productoForm.description" rows="3"
+            placeholder="Descripción del producto..."></textarea>
+        </div>
+        <div class="form-group full">
+          <label>URL de imagen</label>
+          <input type="text" [(ngModel)]="productoForm.imageUrl"
+            placeholder="assets/products/pantalla.jpg o https://...">
+        </div>
+        <div class="form-group">
+          <label>Stock</label>
+          <input type="number" [(ngModel)]="productoForm.stock" min="0">
+        </div>
+        <div class="form-group">
+          <label>Garantía</label>
+          <input type="text" [(ngModel)]="productoForm.warranty" placeholder="12 meses">
+        </div>
+        <div class="form-group">
+          <label>Condición</label>
+          <input type="text" [(ngModel)]="productoForm.condition" placeholder="Nuevo">
+        </div>
+        <div class="form-group">
+          <label>Fabricante</label>
+          <input type="text" [(ngModel)]="productoForm.manufacturer" placeholder="Apple Certified">
+        </div>
+        <div class="form-group full">
+          <label>Compatibilidad <span class="opcional">(separar con comas)</span></label>
+          <input type="text" [(ngModel)]="productoForm.compatibilityText"
+            placeholder="iPhone 13, iPhone 13 Pro, iPhone 13 Pro Max">
+        </div>
+        <div class="form-group">
+          <label class="check-label">
+            <input type="checkbox" [(ngModel)]="productoForm.isOem">
+            <span>Pieza OEM Original</span>
+          </label>
+        </div>
+      </div>
+
+      <div *ngIf="errorProducto" class="banner-error">{{ errorProducto }}</div>
+
+      <div class="form-actions">
+        <button class="btn-cancelar" (click)="cerrarFormProducto()">Cancelar</button>
+        <button class="btn-guardar" (click)="guardarProducto()">
+          {{ productoForm.id ? 'Guardar cambios' : 'Crear producto' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabla de productos -->
+    <div class="tabla-wrapper">
+      <table class="admin-tabla">
+        <thead>
+          <tr>
+            <th>Imagen</th>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>OEM</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of productos">
+            <td><img [src]="p.imageUrl" [alt]="p.name" class="thumb"></td>
+            <td class="nombre-col">{{ p.name }}</td>
+            <td><span class="chip">{{ p.category }}</span></td>
+            <td>{{ p.price | currency:'EUR':'symbol':'1.2-2' }}</td>
+            <td [class.stock-bajo]="p.stock < 5">{{ p.stock }}</td>
+            <td>{{ p.isOem ? '✓ OEM' : '—' }}</td>
+            <td class="acciones-col">
+              <button class="btn-tabla-editar" (click)="abrirFormProducto(p)">✏️ Editar</button>
+              <button class="btn-tabla-eliminar" (click)="eliminarProducto(p.id)">🗑️</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       PESTAÑA: PEDIDOS
+  ════════════════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="tabActivo === 'pedidos'" class="tab-content">
+
+    <div class="tab-toolbar">
+      <h2>Gestión de Pedidos</h2>
+    </div>
+
+    <div *ngIf="msgPedido" class="banner-exito">{{ msgPedido }}</div>
+
+    <div class="tabla-wrapper">
+      <table class="admin-tabla">
+        <thead>
+          <tr>
+            <th>Pedido</th>
+            <th>Cliente</th>
+            <th>Fecha</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of pedidos">
+            <td class="mono">{{ p.orderNumber }}</td>
+            <td>
+              <span class="cliente-nombre">{{ p.customerName }}</span><br>
+              <span class="cliente-email">{{ p.customerEmail }}</span>
+            </td>
+            <td>{{ p.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td><strong>{{ p.total | currency:'EUR':'symbol':'1.2-2' }}</strong></td>
+            <td>
+              <!-- Selector de estado: cambia directamente en el backend al elegir -->
+              <select class="estado-select" [class]="clasePorEstado(p.status)"
+                [value]="p.status"
+                (change)="cambiarEstadoPedido(p, $any($event.target).value)">
+                <option *ngFor="let e of todosLosEstados" [value]="e">
+                  {{ estadosEspanol[e] }}
+                </option>
+              </select>
+            </td>
+            <td class="acciones-col">
+              <button *ngIf="puedeEliminar(p)"
+                class="btn-tabla-eliminar"
+                (click)="eliminarPedido(p.id, p.orderNumber)">
+                🗑️ Eliminar
+              </button>
+              <span *ngIf="!puedeEliminar(p)" class="sin-accion">—</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       PESTAÑA: CATEGORÍAS
+  ════════════════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="tabActivo === 'categorias'" class="tab-content">
+
+    <div class="tab-toolbar">
+      <h2>Gestión de Categorías</h2>
+    </div>
+
+    <div *ngIf="msgCategoria"   class="banner-exito">✓ {{ msgCategoria }}</div>
+    <div *ngIf="errorCategoria" class="banner-error">{{ errorCategoria }}</div>
+
+    <p class="categoria-info">
+      Las categorías se crean automáticamente al asignarlas a un producto.
+      Aquí puedes renombrarlas o eliminarlas (solo si no tienen productos).
+    </p>
+
+    <div class="categorias-lista">
+      <div *ngFor="let cat of categorias" class="categoria-item">
+
+        <!-- Modo lectura -->
+        <ng-container *ngIf="categoriaRenombrando !== cat">
+          <span class="categoria-nombre">{{ cat }}</span>
+          <div class="categoria-acciones">
+            <button class="btn-tabla-editar" (click)="iniciarRenombrar(cat)">✏️ Renombrar</button>
+            <button class="btn-tabla-eliminar" (click)="eliminarCategoria(cat)">🗑️</button>
+          </div>
+        </ng-container>
+
+        <!-- Modo renombrar -->
+        <ng-container *ngIf="categoriaRenombrando === cat">
+          <input type="text" [(ngModel)]="nuevoNombreCategoria"
+            class="input-renombrar" (keyup.enter)="confirmarRenombrar(cat)">
+          <div class="categoria-acciones">
+            <button class="btn-guardar" (click)="confirmarRenombrar(cat)">✓ Guardar</button>
+            <button class="btn-cancelar" (click)="cancelarRenombrar()">✕</button>
+          </div>
+        </ng-container>
+
+      </div>
+    </div>
+
+    <div *ngIf="categorias.length === 0" class="estado-vacio">
+      No hay categorías. Añade productos con categorías para que aparezcan aquí.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       PESTAÑA: USUARIOS
+  ════════════════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="tabActivo === 'usuarios'" class="tab-content">
+
+    <div class="tab-toolbar">
+      <h2>Usuarios Registrados</h2>
+    </div>
+
+    <div *ngIf="msgUsuario" class="banner-exito">{{ msgUsuario }}</div>
+
+    <div class="tabla-wrapper">
+      <table class="admin-tabla">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let u of usuarios">
+            <td>{{ u.firstName }}</td>
+            <td>{{ u.lastName }}</td>
+            <td>{{ u.email }}</td>
+            <td>
+              <span class="chip" [class.chip-admin]="u.role === 'ADMIN'">{{ u.role }}</span>
+            </td>
+            <td class="acciones-col">
+              <!-- Nunca mostrar botón de eliminar para el admin logueado -->
+              <button *ngIf="u.email !== authService.getEmail()"
+                class="btn-tabla-eliminar"
+                (click)="eliminarUsuario(u.id, u.firstName + ' ' + u.lastName)">
+                🗑️ Eliminar
+              </button>
+              <span *ngIf="u.email === authService.getEmail()" class="sin-accion">Tú</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

@@ -40,6 +40,28 @@ public class ProductService {
                 .toList();
     }
 
+    // ─── BUSCAR POR NOMBRE ────────────────────────────────────────────────────
+    // Busca productos cuyo nombre contenga la palabra clave (sin distinguir mayúsculas).
+    // Ejemplo: search="pantalla" → encuentra "Pantalla OLED iPhone 14 Pro"
+    @Transactional(readOnly = true)
+    public List<ProductResponse> searchProducts(String query) {
+        return productRepository.findByNameContainingIgnoreCase(query)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    // ─── FILTRAR POR MODELO DE IPHONE ─────────────────────────────────────────
+    // Busca productos compatibles con un modelo de iPhone concreto.
+    // Ejemplo: model="iPhone 13" → encuentra todos los repuestos para ese modelo.
+    @Transactional(readOnly = true)
+    public List<ProductResponse> getProductsByModel(String model) {
+        return productRepository.findByCompatibilityContaining(model)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     @Transactional
     public ProductResponse createProduct(Product product) {
         Product saved = productRepository.save(product);

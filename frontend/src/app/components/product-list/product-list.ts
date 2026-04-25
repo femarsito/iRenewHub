@@ -1,5 +1,14 @@
+// ─── COMPONENTE PRODUCT LIST ──────────────────────────────────────────────────
+// Muestra el catálogo de productos con tres filtros combinables:
+//   1. Categoría  → botones de categoría (Todos, Baterías, Pantallas...)
+//   2. Búsqueda   → barra de texto que filtra por nombre
+//   3. Modelo     → desplegable con los modelos de iPhone compatibles
+//
+// applyFilters() combina los tres filtros sobre this.products y actualiza
+// this.filteredProducts (la lista que se muestra en pantalla).
+
 import { Component, OnInit } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';  
+import { Router, ActivatedRoute } from '@angular/router';
 import { Product } from '../../models/product.model';
 import { ProductService } from '../../services/product';
 
@@ -11,56 +20,56 @@ import { ProductService } from '../../services/product';
 })
 export class ProductList implements OnInit {
 
-  products: Product[] = [];
-  filteredProducts: Product[] = [];
+  products: Product[] = [];          // Lista completa (no se modifica al filtrar)
+  filteredProducts: Product[] = [];  // Lista filtrada que se muestra en pantalla
   categories: string[] = [];
+  availableModels: string[] = [];    // Modelos de iPhone únicos extraídos de los productos
+
   selectedCategory: string = 'Todos';
+  searchQuery: string = '';
+  selectedModel: string = 'Todos';
+
   isLoading: boolean = false;
 
   constructor(
-    // inyecta el servicio para acceder a los productos
     private productService: ProductService,
-    // inyecta el router para navegar a detalles y la ruta actual para leer parámetros
     private router: Router,
-    private route: ActivatedRoute  
+    private route: ActivatedRoute
   ) { }
 
-  // Se ejecuta automaticamente cuando el componente se inicializa
-  // Cargando los productos y categorias.
   ngOnInit(): void {
-    this.loadProducts();
-    
-    // lee el parámetro de la URL si existe
     this.route.queryParams.subscribe(params => {
-      const categoryParam = params['category'];
-      if (categoryParam) {
-        // espera a que los productos se carguen
-        setTimeout(() => {
-          this.filterByCategory(categoryParam);
-        }, 100);
-      }
+      const categoriaDeUrl = params['category'];
+      this.cargarProductos(categoriaDeUrl);
     });
   }
 
-  loadProducts(): void {
+  cargarProductos(categoriaInicial?: string): void {
     this.isLoading = true;
-    
-    // Subscripción al observable
+
     this.productService.getProducts().subscribe({
-      next: (data: Product[]) => { // cuando llegan los datos, los asigna a las variables del componente
-        this.products = data;
-        this.filteredProducts = data;
-        
-        // extrae categorías directamente de los productos cargados
-        const uniqueCategories = [...new Set(data.map(p => p.category))];
-        this.categories = ['Todos', ...uniqueCategories];
-        
+      next: (productos: Product[]) => {
+        this.products = productos;
+
+        const categoriasUnicas = [...new Set(productos.map(p => p.category))];
+        this.categories = ['Todos', ...categoriasUnicas];
+
+        // flatMap aplana el array de arrays de compatibilidad en uno solo
+        const todosLosModelos = productos.flatMap(p => p.compatibility ?? []);
+        const modelosUnicos = [...new Set(todosLosModelos)].sort();
+        this.availableModels = ['Todos', ...modelosUnicos];
+
+        if (categoriaInicial) {
+          this.selectedCategory = categoriaInicial;
+        }
+
+        this.applyFilters();
         this.isLoading = false;
-        console.log('Productos cargados:', data.length);
+
+        console.log('Productos cargados:', productos.length);
         console.log('Categorías:', this.categories);
       },
-      error: (error: any) => { // maneja errores de carga
-        console.error('Error al cargar productos:', error);
+      error: () => {
         this.isLoading = false;
       }
     });
@@ -68,14 +77,39 @@ export class ProductList implements OnInit {
 
   filterByCategory(category: string): void {
     this.selectedCategory = category;
-    
-    if (category === 'Todos') {
-      this.filteredProducts = this.products;
-    } else {
-      this.filteredProducts = this.products.filter(p => p.category === category);
+    this.applyFilters();
+  }
+
+  onSearchChange(query: string): void {
+    this.searchQuery = query;
+    this.applyFilters();
+  }
+
+  onModelChange(model: string): void {
+    this.selectedModel = model;
+    this.applyFilters();
+  }
+
+  // Aplica los tres filtros a la vez. El orden no importa, cada uno reduce el resultado.
+  applyFilters(): void {
+    let resultado = this.products;
+
+    if (this.selectedCategory !== 'Todos') {
+      resultado = resultado.filter(p => p.category === this.selectedCategory);
     }
-    
-    console.log('Filtrando por:', category, '- Productos encontrados:', this.filteredProducts.length);
+
+    if (this.searchQuery.trim() !== '') {
+      const texto = this.searchQuery.toLowerCase();
+      resultado = resultado.filter(p => p.name.toLowerCase().includes(texto));
+    }
+
+    if (this.selectedModel !== 'Todos') {
+      resultado = resultado.filter(p =>
+        p.compatibility?.some(m => m.toLowerCase().includes(this.selectedModel.toLowerCase()))
+      );
+    }
+
+    this.filteredProducts = resultado;
   }
 
   viewDetail(productId: number): void {

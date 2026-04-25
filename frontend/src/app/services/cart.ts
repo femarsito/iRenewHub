@@ -1,107 +1,109 @@
+// ─── SERVICIO DEL CARRITO ─────────────────────────────────────────────────────
+// Gestiona los items del carrito con un BehaviorSubject (patrón observable).
+//
+// PERSISTENCIA: el carrito se guarda en localStorage en cada cambio.
+// Así sobrevive a recargas de página (F5) y al restablecimiento de sesión.
+// Solo se borra al llamar a clearCart() (cuando se completa el pedido).
+
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { CartItem } from '../models/cart-item.model';
 import { Product } from '../models/product.model';
+
+const CART_KEY = 'irenewhub_cart';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CartService {
 
-  private cartItemsSubject = new BehaviorSubject<CartItem[]>([]);
+  // Inicializamos el BehaviorSubject con los datos guardados en localStorage
+  private cartItemsSubject = new BehaviorSubject<CartItem[]>(this.cargarDeStorage());
   cartItems$ = this.cartItemsSubject.asObservable();
 
-  constructor() { }
+  constructor() {}
 
-  // obtener los items actuales del carrit
+  // ─── OPERACIONES DEL CARRITO ──────────────────────────────────────────────
+
   getCartItems(): CartItem[] {
     return this.cartItemsSubject.getValue();
   }
 
-  // añade producto al carrito
   addToCart(product: Product): void {
     const currentItems = this.getCartItems();
     const existingItem = currentItems.find(item => item.product.id === product.id);
 
     if (existingItem) {
-      // verifica que no exceda el stock
       if (existingItem.quantity < product.stock) {
         const updatedItems = currentItems.map(item =>
           item.product.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
-        this.cartItemsSubject.next(updatedItems);
-      } else {
-        console.warn(`No se puede añadir más de ${product.stock} unidades de ${product.name}`);
+        this.emitir(updatedItems);
       }
     } else {
-      // si no existe, añadir nuevo item si hay stock
       if (product.stock > 0) {
-        const newItem: CartItem = { product, quantity: 1 };
-        this.cartItemsSubject.next([...currentItems, newItem]);
+        this.emitir([...currentItems, { product, quantity: 1 }]);
       }
     }
   }
 
-  // elimina un producto del carrito completamente
   removeFromCart(productId: number): void {
-    const updatedItems = this.getCartItems().filter(
-      item => item.product.id !== productId
-    );
-    this.cartItemsSubject.next(updatedItems);
+    this.emitir(this.getCartItems().filter(item => item.product.id !== productId));
   }
 
-  // aumenta cantidad de un producto
   increaseQuantity(productId: number): void {
-    const currentItems = this.getCartItems();
-    const item = currentItems.find(i => i.product.id === productId);
-  
-  // verifica que no exceda el stock
+    const item = this.getCartItems().find(i => i.product.id === productId);
     if (item && item.quantity < item.product.stock) {
-      const updatedItems = currentItems.map(i =>
-        i.product.id === productId
-          ? { ...i, quantity: i.quantity + 1 }
-          : i
-      );
-      this.cartItemsSubject.next(updatedItems);
-    } else if (item) {
-      console.warn(`Stock máximo alcanzado para ${item.product.name}: ${item.product.stock} unidades`);
+      this.emitir(this.getCartItems().map(i =>
+        i.product.id === productId ? { ...i, quantity: i.quantity + 1 } : i
+      ));
     }
   }
 
-  // disminuye la cantidad de un producto
   decreaseQuantity(productId: number): void {
-    const currentItems = this.getCartItems();
-    const item = currentItems.find(i => i.product.id === productId);
-
-    if (item && item.quantity <= 1) {
-      // si la cantidad es 1, eliminar el producto
+    const item = this.getCartItems().find(i => i.product.id === productId);
+    if (!item) return;
+    if (item.quantity <= 1) {
       this.removeFromCart(productId);
     } else {
-      const updatedItems = currentItems.map(i =>
-        i.product.id === productId
-          ? { ...i, quantity: i.quantity - 1 }
-          : i
-      );
-      this.cartItemsSubject.next(updatedItems);
+      this.emitir(this.getCartItems().map(i =>
+        i.product.id === productId ? { ...i, quantity: i.quantity - 1 } : i
+      ));
     }
   }
 
-  // obtiene el número total de items en el carrito
   getTotalItems(): number {
     return this.getCartItems().reduce((total, item) => total + item.quantity, 0);
   }
 
-  // obtiene el precio total del carrito
   getTotalPrice(): number {
     return this.getCartItems().reduce(
       (total, item) => total + (item.product.price * item.quantity), 0
     );
   }
 
-  // vacia el carrito completamente
   clearCart(): void {
+    localStorage.removeItem(CART_KEY);
     this.cartItemsSubject.next([]);
+  }
+
+  // ─── PERSISTENCIA ─────────────────────────────────────────────────────────
+
+  // Emite la nueva lista y la guarda en localStorage de forma atómica
+  private emitir(items: CartItem[]): void {
+    this.cartItemsSubject.next(items);
+    localStorage.setItem(CART_KEY, JSON.stringify(items));
+  }
+
+  // Lee el carrito guardado en localStorage al arrancar el servicio
+  private cargarDeStorage(): CartItem[] {
+    try {
+      const raw = localStorage.getItem(CART_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];  // Si el JSON está corrupto, empezamos con carrito vacío
+    }
   }
 }

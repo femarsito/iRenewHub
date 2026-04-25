@@ -108,6 +108,36 @@ public class OrderService {
                 .toList();
     }
 
+    // ─── MÉTODOS PARA EL PANEL ADMIN ──────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getAllOrders() {
+        return orderRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Transactional
+    public OrderResponse updateOrderStatus(Long id, String statusString) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado: " + id));
+        order.setStatus(Order.OrderStatus.valueOf(statusString));
+        return toResponse(orderRepository.save(order));
+    }
+
+    @Transactional
+    public void deleteOrder(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado: " + id));
+        // Solo se pueden borrar pedidos entregados o cancelados
+        if (order.getStatus() != Order.OrderStatus.DELIVERED &&
+            order.getStatus() != Order.OrderStatus.CANCELLED) {
+            throw new RuntimeException("Solo se pueden eliminar pedidos entregados o cancelados");
+        }
+        orderRepository.delete(order);
+    }
+
     private OrderResponse toResponse(Order order) {
         List<OrderResponse.OrderItemResponse> itemResponses = order.getItems()
                 .stream()
@@ -129,6 +159,8 @@ public class OrderService {
                 .total(order.getTotal())
                 .createdAt(order.getCreatedAt())
                 .items(itemResponses)
+                .customerName(order.getShippingFirstName() + " " + order.getShippingLastName())
+                .customerEmail(order.getShippingEmail())
                 .build();
     }
 }

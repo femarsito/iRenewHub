@@ -1,6 +1,16 @@
+// ─── COMPONENTE CHECKOUT ──────────────────────────────────────────────────────
+// Proceso de compra en 3 pasos:
+//   Paso 1: Datos de envío (formulario)
+//   Paso 2: Datos de pago (formulario — solo simulación, no se cobra realmente)
+//   Paso 3: Resumen y confirmación
+//
+// Al confirmar, llama al backend POST /api/orders que guarda el pedido en base de datos.
+// El JwtInterceptor añade automáticamente el token JWT a la petición.
+
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { CartItem } from '../../models/cart-item.model';
 import { CartService } from '../../services/cart';
 
@@ -18,38 +28,34 @@ interface OrderSummaryItem {
 })
 export class Checkout implements OnInit {
 
-  // control de pasos del proceso de pago
   currentStep: number = 1;
   totalSteps: number = 3;
 
-  // formularios
   shippingForm!: FormGroup;
   paymentForm!: FormGroup;
 
-  // estado del carrito
   cartItems: CartItem[] = [];
   subtotal: number = 0;
   shippingCost: number = 0;
   total: number = 0;
 
-  // snapshot del pedido para mostrar después de completar
   orderSummary: OrderSummaryItem[] = [];
   totalSnapshot: number = 0;
   shippingCostSnapshot: number = 0;
 
-  // Estado del proceso
   isProcessing: boolean = false;
   orderCompleted: boolean = false;
   orderNumber: string = '';
+  errorMessage: string = '';
 
   constructor(
     private formBuilder: FormBuilder,
     private cartService: CartService,
+    private http: HttpClient,
     private router: Router
   ) { }
 
   ngOnInit(): void {
-    // si el carrito está vacío redirige al carrito
     this.cartService.cartItems$.subscribe((items: CartItem[]) => {
       this.cartItems = items;
       this.subtotal = this.cartService.getTotalPrice();
@@ -66,73 +72,60 @@ export class Checkout implements OnInit {
   }
 
   initForms(): void {
-    // formulario de envío
     this.shippingForm = this.formBuilder.group({
-      firstName: ['', [Validators.required, Validators.minLength(2)]],
-      lastName: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.required, Validators.pattern(/^[0-9]{9}$/)]],
-      address: ['', [Validators.required, Validators.minLength(10)]],
-      city: ['', Validators.required],
+      firstName:  ['', [Validators.required, Validators.minLength(2)]],
+      lastName:   ['', [Validators.required, Validators.minLength(2)]],
+      email:      ['', [Validators.required, Validators.email]],
+      phone:      ['', [Validators.required, Validators.pattern(/^[0-9]{9}$/)]],
+      address:    ['', [Validators.required, Validators.minLength(10)]],
+      city:       ['', Validators.required],
       postalCode: ['', [Validators.required, Validators.pattern(/^[0-9]{5}$/)]],
-      province: ['', Validators.required]
+      province:   ['', Validators.required]
     });
 
-    // formulario de pago
     this.paymentForm = this.formBuilder.group({
-      cardName: ['', [Validators.required, Validators.minLength(3)]],
+      cardName:   ['', [Validators.required, Validators.minLength(3)]],
       cardNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{16}$/)]],
       expiryDate: ['', [Validators.required, Validators.pattern(/^(0[1-9]|1[0-2])\/([0-9]{2})$/)]],
-      cvv: ['', [Validators.required, Validators.pattern(/^[0-9]{3,4}$/)]]
+      cvv:        ['', [Validators.required, Validators.pattern(/^[0-9]{3,4}$/)]]
     });
   }
 
-  // getters formulario de envío
-  get firstName() { return this.shippingForm.get('firstName'); }
-  get lastName() { return this.shippingForm.get('lastName'); }
-  get email() { return this.shippingForm.get('email'); }
-  get phone() { return this.shippingForm.get('phone'); }
-  get address() { return this.shippingForm.get('address'); }
-  get city() { return this.shippingForm.get('city'); }
+  // Getters formulario de envío
+  get firstName()  { return this.shippingForm.get('firstName'); }
+  get lastName()   { return this.shippingForm.get('lastName'); }
+  get email()      { return this.shippingForm.get('email'); }
+  get phone()      { return this.shippingForm.get('phone'); }
+  get address()    { return this.shippingForm.get('address'); }
+  get city()       { return this.shippingForm.get('city'); }
   get postalCode() { return this.shippingForm.get('postalCode'); }
-  get province() { return this.shippingForm.get('province'); }
+  get province()   { return this.shippingForm.get('province'); }
 
-  // getters formulario de pago
-  get cardName() { return this.paymentForm.get('cardName'); }
+  // Getters formulario de pago
+  get cardName()   { return this.paymentForm.get('cardName'); }
   get cardNumber() { return this.paymentForm.get('cardNumber'); }
   get expiryDate() { return this.paymentForm.get('expiryDate'); }
-  get cvv() { return this.paymentForm.get('cvv'); }
+  get cvv()        { return this.paymentForm.get('cvv'); }
 
-  // avanza al siguiente paso
   nextStep(): void {
-    // valida según el paso actual
     if (this.currentStep === 1) {
       if (this.shippingForm.invalid) {
-        Object.keys(this.shippingForm.controls).forEach(key => {
-          this.shippingForm.get(key)?.markAsTouched();
-        });
+        Object.keys(this.shippingForm.controls).forEach(k => this.shippingForm.get(k)?.markAsTouched());
         return;
       }
       this.currentStep = 2;
-    } 
-    else if (this.currentStep === 2) {
+    } else if (this.currentStep === 2) {
       if (this.paymentForm.invalid) {
-        Object.keys(this.paymentForm.controls).forEach(key => {
-          this.paymentForm.get(key)?.markAsTouched();
-        });
+        Object.keys(this.paymentForm.controls).forEach(k => this.paymentForm.get(k)?.markAsTouched());
         return;
       }
       this.currentStep = 3;
-    }
-    else if (this.currentStep === 3) {
-      // en el paso 3, llamamos a confirmPayment
+    } else if (this.currentStep === 3) {
       this.confirmPayment();
     }
-    
     window.scrollTo(0, 0);
   }
 
-  // retrocede al paso anterior
   prevStep(): void {
     if (this.currentStep > 1) {
       this.currentStep--;
@@ -140,10 +133,14 @@ export class Checkout implements OnInit {
     }
   }
 
-  // confirmar el pago
+  // ─── CONFIRMAR PAGO ─────────────────────────────────────────────────────────
+  // Llama al backend POST /api/orders con los datos del formulario y el carrito.
+  // El JwtInterceptor añade el token JWT automáticamente para identificar al usuario.
   confirmPayment(): void {
     this.isProcessing = true;
+    this.errorMessage = '';
 
+    // Guardar snapshot visual antes de vaciar el carrito
     this.orderSummary = this.cartItems.map(item => ({
       productName: item.product.name,
       quantity: item.quantity,
@@ -152,38 +149,43 @@ export class Checkout implements OnInit {
     this.totalSnapshot = this.total;
     this.shippingCostSnapshot = this.shippingCost;
 
-    // simula procesamiento del pago durante 3 segundos
-    setTimeout(() => {
-      this.isProcessing = false;
-      this.orderCompleted = true;
-      this.orderNumber = this.generateOrderNumber();
-      
-      // vacia el carrito despues de guardar el snapshot
-      this.cartService.clearCart();
-    }, 3000);
+    // Construir el body que espera el backend (CreateOrderRequest)
+    const shipping = this.shippingForm.value;
+    const requestBody = {
+      firstName:  shipping.firstName,
+      lastName:   shipping.lastName,
+      email:      shipping.email,
+      phone:      shipping.phone,
+      address:    shipping.address,
+      city:       shipping.city,
+      postalCode: shipping.postalCode,
+      province:   shipping.province,
+      // Convertir cada CartItem al formato {productId, quantity} del backend
+      items: this.cartItems.map(item => ({
+        productId: item.product.id,
+        quantity:  item.quantity
+      }))
+    };
+
+    this.http.post<any>('http://localhost:8080/api/orders', requestBody).subscribe({
+      next: (pedido) => {
+        this.isProcessing = false;
+        this.orderCompleted = true;
+        this.orderNumber = pedido.orderNumber;  // Número real generado por el backend
+        this.cartService.clearCart();
+      },
+      error: (err) => {
+        this.isProcessing = false;
+        this.errorMessage = err.error?.message || 'Error al procesar el pedido. Inténtalo de nuevo.';
+      }
+    });
   }
 
-  // genera un número de pedido aleatorio
-  generateOrderNumber(): string {
-    const timestamp = Date.now().toString().slice(-6);
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    return `IPH-${timestamp}-${random}`;
-  }
-
-  // formatea número de tarjeta para mostrar
   formatCardNumber(value: string): string {
     return value.replace(/(.{4})/g, '$1 ').trim();
   }
 
-  goToHome(): void {
-    this.router.navigate(['/home']);
-  }
-
-  goToProducts(): void {
-    this.router.navigate(['/products']);
-  }
-
-  goToCart(): void {
-    this.router.navigate(['/cart']);
-  }
+  goToHome():     void { this.router.navigate(['/home']); }
+  goToProducts(): void { this.router.navigate(['/products']); }
+  goToCart():     void { this.router.navigate(['/cart']); }
 }

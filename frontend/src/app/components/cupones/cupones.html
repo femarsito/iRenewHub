@@ -1,0 +1,28 @@
+<div class="cupones-container">
+
+  <div class="cupones-header">
+    <h1>Mis Cupones</h1>
+    <p class="cupones-subtitle">Descuentos disponibles para tus próximas compras</p>
+  </div>
+
+  <div class="cupones-grid">
+    <div *ngFor="let cupon of cupones" class="cupon-card" [class.inactivo]="!cupon.activo">
+
+      <div class="cupon-descuento">{{ cupon.descuento }}</div>
+
+      <div class="cupon-info">
+        <p class="cupon-descripcion">{{ cupon.descripcion }}</p>
+        <div class="cupon-codigo-box">
+          <span class="cupon-codigo">{{ cupon.codigo }}</span>
+        </div>
+      </div>
+
+      <div class="cupon-estado">
+        <span *ngIf="cupon.activo" class="estado-activo">✓ Disponible</span>
+        <span *ngIf="!cupon.activo" class="estado-inactivo">Expirado</span>
+      </div>
+
+    </div>
+  </div>
+
+</div>

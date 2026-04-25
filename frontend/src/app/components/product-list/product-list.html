@@ -4,9 +4,25 @@
     <p class="subtitle">Piezas OEM originales y genéricas certificadas por Apple</p>
   </div>
 
+  <!-- Barra de búsqueda y filtro por modelo -->
+  <div class="search-filter-bar">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Buscar por nombre (ej: pantalla, batería...)"
+      [value]="searchQuery"
+      (input)="onSearchChange($any($event.target).value)">
+
+    <select class="model-select" [value]="selectedModel" (change)="onModelChange($any($event.target).value)">
+      <option *ngFor="let model of availableModels" [value]="model">
+        {{ model === 'Todos' ? 'Todos los modelos' : model }}
+      </option>
+    </select>
+  </div>
+
   <!-- Filtro por categorías -->
   <div class="category-filter">
-    <button 
+    <button
       *ngFor="let category of categories"
       [class.active]="selectedCategory === category"
       (click)="filterByCategory(category)">
@@ -23,24 +39,20 @@
   <!-- Grid de productos -->
   <div *ngIf="!isLoading" class="products-grid">
     <div *ngFor="let product of filteredProducts" class="product-card">
-      
-      <!-- Etiqueta OEM/Genérica -->
+
       <div class="badge" [class.oem]="product.isOEM" [class.generic]="!product.isOEM">
         {{ product.isOEM ? 'OEM Original' : 'Genérica Certificada' }}
       </div>
 
-      <!-- Imagen -->
       <div class="product-image">
         <img [src]="product.imageUrl" [alt]="product.name">
       </div>
 
-      <!-- Información -->
       <div class="product-info">
         <h3>{{ product.name }}</h3>
         <p class="category">{{ product.category }}</p>
         <p class="description">{{ product.description }}</p>
 
-        <!-- Compatibilidad -->
         <div class="compatibility">
           <strong>Compatible con:</strong>
           <span *ngFor="let model of product.compatibility; let last = last">
@@ -48,7 +60,6 @@
           </span>
         </div>
 
-        <!-- Precio -->
         <div class="price-section">
           <span class="current-price">{{ product.price | currency:'EUR':'symbol':'1.2-2' }}</span>
           <span *ngIf="product.originalPrice" class="original-price">
@@ -56,13 +67,11 @@
           </span>
         </div>
 
-        <!-- Stock -->
         <p class="stock" [class.low-stock]="product.stock < 10">
           <span *ngIf="product.stock > 0">En stock ({{ product.stock }} unidades)</span>
           <span *ngIf="product.stock === 0" class="out-of-stock">✗ Agotado</span>
         </p>
 
-        <!-- Botón ver detalles -->
         <button class="btn-detail" (click)="viewDetail(product.id)">
           Ver Detalles
         </button>
@@ -70,8 +79,7 @@
     </div>
   </div>
 
-  <!-- Mensaje si no hay productos -->
   <div *ngIf="!isLoading && filteredProducts.length === 0" class="no-products">
-    <p>No hay productos disponibles en esta categoría</p>
+    <p>No hay productos que coincidan con los filtros seleccionados</p>
   </div>
 </div>

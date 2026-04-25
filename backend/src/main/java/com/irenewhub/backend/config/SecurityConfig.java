@@ -45,13 +45,15 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
 
-                        // Rutas de admin — solo ADMIN puede crear/editar/borrar productos
+                        // Rutas de admin — solo ADMIN puede crear/editar/borrar productos y ver stats
                         .requestMatchers(HttpMethod.POST, "/api/products/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                         // Rutas de usuario autenticado
                         .requestMatchers("/api/orders/**").authenticated()
+                        .requestMatchers("/api/users/**").authenticated()
                         .requestMatchers("/api/contact/**").permitAll()
 
                         // Cualquier otra ruta requiere autenticación

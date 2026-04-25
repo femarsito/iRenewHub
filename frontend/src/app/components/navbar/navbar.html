@@ -1,19 +1,80 @@
 <nav class="navbar">
   <div class="navbar-container">
-    <h1 class="logo" routerLink="/home">iRenewHub</h1>
-    <ul class="nav-links">
-      <!-- RouterLink reemplaza <a href=""> -->
-      <!-- RouterLinkActive añade la clase CSS active al enlace de la ruta para que resalte visualmente -->
-      <li><a routerLink="/home" routerLinkActive="active">Inicio</a></li>
+
+    <!-- Logo -->
+    <h1 class="logo" routerLink="/products">iRenewHub</h1>
+
+    <!-- Links de navegación (solo visibles si hay sesión) -->
+    <ul class="nav-links" *ngIf="authService.isLoggedIn()">
       <li><a routerLink="/products" routerLinkActive="active">Productos</a></li>
-      <li><a routerLink="/contact" routerLinkActive="active">Contacto</a></li>
+      <li><a routerLink="/contact"  routerLinkActive="active">Contacto</a></li>
+      <li *ngIf="authService.isAdmin()">
+        <a routerLink="/admin" routerLinkActive="active" class="admin-link">⚙️ Admin</a>
+      </li>
     </ul>
-    <!-- Icono del carrito con contador -->
-    <a routerLink="/cart" class="cart-icon">
-      🛒
-      <span class="cart-badge" *ngIf="cartItemCount > 0">
-        {{ cartItemCount }}
-      </span>
-    </a>
+
+    <div class="navbar-actions">
+
+      <!-- Usuario autenticado -->
+      <ng-container *ngIf="authService.isLoggedIn()">
+
+        <!-- Icono del carrito -->
+        <a routerLink="/cart" class="cart-icon">
+          🛒
+          <span class="cart-badge" *ngIf="cartItemCount > 0">{{ cartItemCount }}</span>
+        </a>
+
+        <!-- Badge ADMIN -->
+        <span *ngIf="authService.isAdmin()" class="admin-badge">ADMIN</span>
+
+        <!-- ─── CÍRCULO DE PERFIL ESTILO YOUTUBE ──────────────────────────── -->
+        <div class="perfil-container">
+
+          <!-- Círculo con la inicial del nombre -->
+          <div class="perfil-avatar" (click)="toggleMenu()">
+            {{ inicialNombre }}
+          </div>
+
+          <!-- Menú desplegable -->
+          <div class="perfil-menu" *ngIf="menuAbierto">
+
+            <!-- Cabecera del menú: avatar pequeño + nombre + email -->
+            <div class="perfil-menu-header">
+              <div class="perfil-avatar-sm">{{ inicialNombre }}</div>
+              <div class="perfil-menu-info">
+                <p class="perfil-nombre">{{ nombreCompleto }}</p>
+                <p class="perfil-email">{{ authService.getEmail() }}</p>
+              </div>
+            </div>
+
+            <div class="perfil-menu-divider"></div>
+
+            <!-- Opciones del menú -->
+            <a routerLink="/perfil"      (click)="cerrarMenu()" class="menu-item">
+              <span class="menu-item-icon">👤</span> Mis datos
+            </a>
+            <a routerLink="/mis-compras" (click)="cerrarMenu()" class="menu-item">
+              <span class="menu-item-icon">🛍️</span> Mis compras
+            </a>
+            <a routerLink="/cupones"     (click)="cerrarMenu()" class="menu-item">
+              <span class="menu-item-icon">🎟️</span> Cupones de descuento
+            </a>
+
+            <div class="perfil-menu-divider"></div>
+
+            <button (click)="logout()" class="menu-item menu-item-logout">
+              <span class="menu-item-icon">🚪</span> Cerrar sesión
+            </button>
+
+          </div>
+        </div>
+        <!-- ──────────────────────────────────────────────────────────────── -->
+
+      </ng-container>
+
+      <!-- Usuario NO autenticado: solo botón de entrar -->
+      <a *ngIf="!authService.isLoggedIn()" routerLink="/login" class="btn-login">Entrar</a>
+
+    </div>
   </div>
 </nav>
