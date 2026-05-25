@@ -24,22 +24,18 @@ export class Home implements OnInit {
 
   advantages = [
     {
-      icon: '✅',
       title: 'Piezas Certificadas',
       description: 'Todas nuestras piezas son OEM originales o genéricas certificadas por Apple'
     },
     {
-      icon: '🛡️',
       title: 'Garantía Incluida',
       description: 'Hasta 12 meses de garantía en todas las piezas OEM originales'
     },
     {
-      icon: '🚚',
       title: 'Envío Rápido',
       description: 'Entrega en 24-48 horas en toda la península'
     },
     {
-      icon: '🔧',
       title: 'Soporte Técnico',
       description: 'Equipo especializado disponible para resolver todas tus dudas'
     }

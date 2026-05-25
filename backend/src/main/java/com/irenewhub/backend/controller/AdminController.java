@@ -1,18 +1,22 @@
 package com.irenewhub.backend.controller;
 
 import com.irenewhub.backend.dto.OrderResponse;
+import com.irenewhub.backend.entity.Category;
+import com.irenewhub.backend.entity.ContactMessage;
 import com.irenewhub.backend.entity.User;
 import com.irenewhub.backend.exception.ResourceNotFoundException;
+import com.irenewhub.backend.repository.CategoryRepository;
+import com.irenewhub.backend.repository.ContactRepository;
 import com.irenewhub.backend.repository.ProductRepository;
 import com.irenewhub.backend.repository.UserRepository;
+import com.irenewhub.backend.service.CommentService;
 import com.irenewhub.backend.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -21,18 +25,20 @@ import java.util.stream.Collectors;
 public class AdminController {
 
     private final OrderService orderService;
+    private final CommentService commentService;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final ContactRepository contactRepository;
+    private final CategoryRepository categoryRepository;
 
-    // ─── ESTADÍSTICAS ─────────────────────────────────────────────────────────
+    // ---- ESTADÍSTICAS ----
 
     @GetMapping("/users/count")
     public ResponseEntity<Map<String, Long>> getUserCount() {
         return ResponseEntity.ok(Map.of("count", userRepository.count()));
     }
 
-    // ─── GESTIÓN DE PEDIDOS ───────────────────────────────────────────────────
-
+    // ---- GESTIÓN DE PEDIDOS ----
     // Todos los pedidos del sistema (para el admin)
     @GetMapping("/orders")
     public ResponseEntity<List<OrderResponse>> getAllOrders() {
@@ -54,7 +60,7 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
-    // ─── GESTIÓN DE USUARIOS ──────────────────────────────────────────────────
+    // ---- GESTIÓN DE USUARIOS ----
 
     // Lista todos los usuarios con nombre, email y rol
     @GetMapping("/users")
@@ -82,16 +88,74 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
-    // ─── GESTIÓN DE CATEGORÍAS ────────────────────────────────────────────────
+    // ---- MENSAJES DE CONTACTO ----
 
-    // Categorías únicas derivadas de los productos existentes
-    @GetMapping("/categories")
-    public ResponseEntity<List<String>> getCategories() {
-        return ResponseEntity.ok(productRepository.findAllDistinctCategories());
+    @GetMapping("/messages")
+    public ResponseEntity<List<Map<String, Object>>> getMessages() {
+        List<Map<String, Object>> messages = contactRepository.findAll()
+                .stream()
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                .map(m -> Map.of(
+                        "id",        (Object) m.getId(),
+                        "name",      m.getName(),
+                        "email",     m.getEmail(),
+                        "subject",   m.getSubject(),
+                        "message",   m.getMessage(),
+                        "status",    m.getStatus().name(),
+                        "createdAt", m.getCreatedAt().toString()
+                ))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(messages);
     }
 
-    // Renombra una categoría en todos los productos que la usan
-    // Body: {"oldName": "Pantallas", "newName": "Pantallas LCD"}
+    @PutMapping("/messages/{id}/status")
+    public ResponseEntity<Map<String, Object>> toggleMessageStatus(@PathVariable Long id) {
+        ContactMessage msg = contactRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Mensaje no encontrado: " + id));
+        msg.setStatus(msg.getStatus() == ContactMessage.MessageStatus.REPLIED
+                ? ContactMessage.MessageStatus.UNREAD
+                : ContactMessage.MessageStatus.REPLIED);
+        contactRepository.save(msg);
+        return ResponseEntity.ok(Map.of("id", (Object) msg.getId(), "status", msg.getStatus().name()));
+    }
+
+    @DeleteMapping("/messages/{id}")
+    public ResponseEntity<Void> deleteMessage(@PathVariable Long id) {
+        if (!contactRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Mensaje no encontrado: " + id);
+        }
+        contactRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ---- GESTIÓN DE CATEGORÍAS ----
+
+    // Devuelve la union de categorias de productos + categorias creadas manualmente
+    // TreeSet ordena y elimina duplicados automaticamente
+    @GetMapping("/categories")
+    public ResponseEntity<List<String>> getCategories() {
+        Set<String> all = new TreeSet<>();
+        all.addAll(productRepository.findAllDistinctCategories());
+        categoryRepository.findAll().forEach(c -> all.add(c.getName()));
+        return ResponseEntity.ok(new ArrayList<>(all));
+    }
+
+    // Crea una categoria nueva y la persiste en la tabla categories
+    @PostMapping("/categories")
+    public ResponseEntity<Map<String, Object>> createCategory(
+            @RequestBody Map<String, String> body) {
+        String name = body.get("name");
+        if (name == null || name.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Nombre requerido"));
+        }
+        if (categoryRepository.existsByName(name) || productRepository.countByCategory(name) > 0) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Esa categoria ya existe"));
+        }
+        Category saved = categoryRepository.save(Category.builder().name(name).build());
+        return ResponseEntity.ok(Map.of("id", (Object) saved.getId(), "name", saved.getName()));
+    }
+
+    // Renombra una categoria en todos los productos + en la tabla categories si existe
     @Transactional
     @PutMapping("/categories/rename")
     public ResponseEntity<Map<String, Object>> renameCategory(
@@ -99,10 +163,14 @@ public class AdminController {
         String oldName = body.get("oldName");
         String newName = body.get("newName");
         int updated = productRepository.updateCategoryName(oldName, newName);
-        return ResponseEntity.ok(Map.of("updated", updated, "message", "Categoría renombrada"));
+        categoryRepository.findByName(oldName).ifPresent(cat -> {
+            cat.setName(newName);
+            categoryRepository.save(cat);
+        });
+        return ResponseEntity.ok(Map.of("updated", updated, "message", "Categoria renombrada"));
     }
 
-    // Elimina una categoría — solo si ningún producto la usa
+    // Elimina una categoria — solo si ningun producto la usa
     @Transactional
     @DeleteMapping("/categories/{name}")
     public ResponseEntity<Map<String, String>> deleteCategory(
@@ -110,8 +178,30 @@ public class AdminController {
         long count = productRepository.countByCategory(name);
         if (count > 0) {
             return ResponseEntity.badRequest()
-                    .body(Map.of("error", "La categoría tiene " + count + " productos. Reasígnalos antes de eliminarla."));
+                    .body(Map.of("error", "La categoria tiene " + count + " productos. Reasignalos antes de eliminarla."));
         }
-        return ResponseEntity.ok(Map.of("message", "Categoría eliminada"));
+        // Tambien la borra de la tabla categories si fue creada manualmente
+        categoryRepository.findByName(name).ifPresent(categoryRepository::delete);
+        return ResponseEntity.ok(Map.of("message", "Categoria eliminada"));
+    }
+
+    // ---- DENUNCIAS DE COMENTARIOS ----
+    @GetMapping("/reports")
+    public ResponseEntity<List<Map<String, Object>>> getReports() {
+        return ResponseEntity.ok(commentService.getPendingReports());
+    }
+
+    // Elimina el comentario denunciado y marca la denuncia como resuelta
+    @DeleteMapping("/reports/{reportId}/comment")
+    public ResponseEntity<Map<String, String>> deleteReportedComment(@PathVariable Long reportId) {
+        commentService.deleteCommentByReport(reportId);
+        return ResponseEntity.ok(Map.of("message", "Comentario eliminado."));
+    }
+
+    // Ignora la denuncia sin borrar el comentario
+    @PutMapping("/reports/{reportId}/ignore")
+    public ResponseEntity<Map<String, String>> ignoreReport(@PathVariable Long reportId) {
+        commentService.ignoreReport(reportId);
+        return ResponseEntity.ok(Map.of("message", "Denuncia ignorada."));
     }
 }

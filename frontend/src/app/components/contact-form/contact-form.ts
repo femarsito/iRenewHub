@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ContactService } from '../../services/contact';
 
 @Component({
   selector: 'app-contact-form',
@@ -14,7 +15,7 @@ export class ContactForm implements OnInit {
   submitSuccess: boolean = false;
   submitError: boolean = false;
 
-  constructor(private formBuilder: FormBuilder) { }
+  constructor(private formBuilder: FormBuilder, private contactService: ContactService) { }
 
   ngOnInit(): void {
     this.initializeForm();
@@ -54,8 +55,6 @@ export class ContactForm implements OnInit {
   }
 
   onSubmit(): void {
-    // Validacion antes de enviar:
-    // Marca todos los campos como tocados para mostrar errores
     if (this.contactForm.invalid) {
       Object.keys(this.contactForm.controls).forEach(key => {
         this.contactForm.get(key)?.markAsTouched();
@@ -63,34 +62,23 @@ export class ContactForm implements OnInit {
       return;
     }
 
-    // simula envío del formulario
     this.isSubmitting = true;
     this.submitSuccess = false;
     this.submitError = false;
 
-    setTimeout(() => {
-      // simular éxito
-      if (Math.random() > 0.1) {
+    this.contactService.sendMessage(this.contactForm.value).subscribe({
+      next: () => {
         this.submitSuccess = true;
-        console.log('Formulario enviado:', this.contactForm.value);
-        
-        // resetea el formulario después del éxito
         this.contactForm.reset();
-        
-        // oculta el mensaje de éxito después de 5 segundos
-        setTimeout(() => {
-          this.submitSuccess = false;
-        }, 5000);
-      } else {
+        this.isSubmitting = false;
+        setTimeout(() => { this.submitSuccess = false; }, 5000);
+      },
+      error: () => {
         this.submitError = true;
-        
-        setTimeout(() => {
-          this.submitError = false;
-        }, 5000);
+        this.isSubmitting = false;
+        setTimeout(() => { this.submitError = false; }, 5000);
       }
-      
-      this.isSubmitting = false;
-    }, 2000);
+    });
   }
 
   resetForm(): void {

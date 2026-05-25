@@ -1,12 +1,8 @@
 package com.irenewhub.backend.service;
 
-// ─── SERVICIO DE AUTENTICACIÓN ────────────────────────────────────────────────
-// Gestiona el registro, el login y la recuperación de contraseña.
-//
-// Flujo de recuperación de contraseña (2 pasos):
-//   1. forgotPassword(email)   → genera un token, lo guarda en el usuario y lo devuelve
-//   2. [Demo] El frontend muestra el token al usuario (en prod. se enviaría por email)
-//   3. resetPassword(token, newPassword) → valida el token y cambia la contraseña
+// Gestiona registro, login y recuperación de contraseña.
+// La recuperación funciona en 2 pasos: forgotPassword genera un token y lo envía por email,
+// resetPassword lo valida y actualiza la contraseña.
 
 import com.irenewhub.backend.dto.AuthResponse;
 import com.irenewhub.backend.dto.LoginRequest;
@@ -29,8 +25,9 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
-    // ─── REGISTRO ─────────────────────────────────────────────────────────────
+    // ---- REGISTRO ----
     public AuthResponse register(RegisterRequest request) {
 
         // 1. Comprobar que el email no está ya registrado
@@ -54,7 +51,7 @@ public class AuthService {
         return construirRespuesta(nuevoUsuario, token);
     }
 
-    // ─── LOGIN ────────────────────────────────────────────────────────────────
+    // ---- LOGIN ----
     public AuthResponse login(LoginRequest request) {
 
         // 1. Buscar el usuario por email (lanza 404 si no existe)
@@ -71,36 +68,30 @@ public class AuthService {
         return construirRespuesta(usuario, token);
     }
 
-    // ─── RECUPERAR CONTRASEÑA (PASO 1) ────────────────────────────────────────
-    // Genera un token único, lo guarda en el usuario con una expiración de 1 hora
-    // y lo devuelve en la respuesta.
-    //
-    // NOTA DEMO: En una aplicación real este token se enviaría por email
-    // (con JavaMailSender o similar). Para el TFG, lo devolvemos directamente
-    // en la respuesta para poder demostrar el flujo completo sin servidor de correo.
+    // ---- RECUPERAR CONTRASEÑA (PASO 1) ----
+    // Genera un token UUID, lo guarda con expiración de 1 hora y envía el email.
     public Map<String, String> forgotPassword(String email) {
 
         User usuario = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe cuenta con ese email"));
 
-        // Generar un token único con UUID (ej: "a1b2c3d4-e5f6-...")
+        // Generar un token único (ej: "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
         String token = UUID.randomUUID().toString();
 
-        // Guardar el token y su fecha de expiración en el usuario
+        // Guardar token y expiración en el usuario
         usuario.setResetToken(token);
-        usuario.setResetTokenExpiry(LocalDateTime.now().plusHours(1));  // Expira en 1 hora
+        usuario.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
         userRepository.save(usuario);
 
-        // Devolver el token para que el frontend lo muestre al usuario
-        // (en producción: enviar por email y devolver solo un mensaje genérico)
-        return Map.of(
-                "token", token,
-                "message", "Token generado. En producción se enviaría por email."
-        );
+        // Enviar email con el enlace de recuperación
+        emailService.enviarEmailRecuperacion(email, token);
+
+        // Devolvemos solo un mensaje genérico — el token nunca viaja al frontend
+        return Map.of("message", "Hemos enviado un enlace de recuperación a tu email.");
     }
 
-    // ─── CAMBIAR CONTRASEÑA (PASO 2) ──────────────────────────────────────────
-    // Recibe el token y la nueva contraseña. Valida el token y actualiza la contraseña.
+    // ---- CAMBIAR CONTRASEÑA (PASO 2) ----
+    // Valida el token recibido y actualiza la contraseña si no ha expirado.
     public Map<String, String> resetPassword(String token, String newPassword) {
 
         // 1. Buscar el usuario que tenga ese token
@@ -124,7 +115,6 @@ public class AuthService {
         return Map.of("message", "Contraseña actualizada correctamente. Ya puedes iniciar sesión.");
     }
 
-    // ─── MÉTODO AUXILIAR ──────────────────────────────────────────────────────
     // Construye el AuthResponse con el JWT y los datos del usuario.
     private AuthResponse construirRespuesta(User usuario, String token) {
         return AuthResponse.builder()

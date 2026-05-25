@@ -32,7 +32,7 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request));
     }
 
-    // ─── RECUPERACIÓN DE CONTRASEÑA (PASO 1) ──────────────────────────────────
+    // ---- RECUPERACIÓN DE CONTRASEÑA (PASO 1) ----
     // Recibe el email, genera el token y lo devuelve en la respuesta.
     // DEMO: en producción este token se enviaría por email, no en la respuesta HTTP.
     @PostMapping("/forgot-password")
@@ -41,7 +41,7 @@ public class AuthController {
         return ResponseEntity.ok(authService.forgotPassword(request.getEmail()));
     }
 
-    // ─── RECUPERACIÓN DE CONTRASEÑA (PASO 2) ──────────────────────────────────
+    // ---- RECUPERACIÓN DE CONTRASEÑA (PASO 2) ----
     // Recibe el token (que el usuario copió del paso 1) y la nueva contraseña.
     @PostMapping("/reset-password")
     public ResponseEntity<Map<String, String>> resetPassword(

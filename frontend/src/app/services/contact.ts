@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, delay, throwError } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
-export interface ContactMessage {
+export interface ContactRequest {
   name: string;
   email: string;
   phone: string;
   subject: string;
   message: string;
-  date: Date;
 }
 
 @Injectable({
@@ -15,22 +15,11 @@ export interface ContactMessage {
 })
 export class ContactService {
 
-  private messages: ContactMessage[] = [];
+  private readonly API = 'http://localhost:8080/api/contact';
 
-  constructor() { }
+  constructor(private http: HttpClient) {}
 
-  // simula el envío de un mensaje de contacto
-  sendMessage(message: ContactMessage): Observable<{ success: boolean; message: string }> {
-    
-    return of({
-      success: true,
-      message: 'Tu mensaje ha sido enviado correctamente. Te contactaremos pronto.'
-    }).pipe(delay(1500));
-
-  }
-
-  // obtiene todos los mensajes 
-  getMessages(): ContactMessage[] {
-    return this.messages;
+  sendMessage(data: ContactRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(this.API, data);
   }
 }

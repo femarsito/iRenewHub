@@ -1,4 +1,4 @@
-// ─── COMPONENTE NAVBAR ────────────────────────────────────────────────────────
+// ---- COMPONENTE NAVBAR ----
 // Barra de navegación fija con:
 //   - Círculo de perfil estilo YouTube (inicial del nombre + menú desplegable)
 //   - Badge ADMIN si el usuario tiene ese rol
@@ -64,6 +64,7 @@ export class Navbar implements OnInit {
   }
 
   logout(): void {
+    this.cartService.clearCart();   // Borra el carrito del usuario actual antes de cerrar sesión
     this.authService.logout();
     this.menuAbierto = false;
     this.router.navigate(['/login']);

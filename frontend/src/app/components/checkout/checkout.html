@@ -1,14 +1,13 @@
 <div class="container">
 
-  
+
   <!-- PEDIDO COMPLETADO -->
 <div *ngIf="orderCompleted" class="order-success">
-  <div class="success-icon">🎉</div>
+  <img src="assets/irenewhub_logo.png" alt="iRenewHub" class="logo-success">
   <h1>¡Pedido Confirmado!</h1>
   <p class="order-number">Número de pedido: <strong>{{ orderNumber }}</strong></p>
   <p class="order-message">
-    Hemos recibido tu pedido correctamente. Recibirás un email de confirmación
-    en <strong>{{ shippingForm.value.email }}</strong> con todos los detalles.
+    Hemos recibido tu pedido correctamente.
   </p>
 
   <div class="order-details">
@@ -29,6 +28,9 @@
   </div>
 
   <div class="success-actions">
+    <button class="btn-pdf" (click)="descargarTicketPDF()">
+      Descargar ticket PDF
+    </button>
     <button class="btn-primary" (click)="goToHome()">Volver al Inicio</button>
     <button class="btn-secondary" (click)="goToProducts()">Seguir Comprando</button>
   </div>
@@ -169,74 +171,44 @@
           </div>
         </div>
 
-        <!-- PASO 2: Datos de pago -->
+        <!-- PASO 2: Pago con Stripe -->
         <div *ngIf="currentStep === 2" class="form-section">
           <h2>Datos de Pago</h2>
 
-          <div class="security-badge">
-            🔒 Pago 100% seguro y encriptado
+          <!-- Badge Stripe -->
+          <div class="stripe-badge">
+            <span>Pago seguro procesado por</span>
+            <strong>Stripe</strong>
+            <span class="stripe-test-tag">MODO TEST</span>
           </div>
 
-          <form [formGroup]="paymentForm">
+          <!-- Card Element de Stripe (Stripe lo rellena con sus inputs seguros) -->
+          <div class="stripe-card-wrapper">
+            <label class="stripe-label">Datos de tarjeta</label>
+            <div id="card-element" class="stripe-card-element"></div>
+            <p class="stripe-hint">
+              <strong>Modo TEST — no se realiza ningún cobro real</strong><br>
+              Tarjeta aprobada: <strong>4242 4242 4242 4242</strong>
+            </p>
+          </div>
 
-            <div class="form-group full-width">
-              <label>Nombre en la tarjeta *</label>
-              <input type="text" formControlName="cardName"
-                placeholder="FERNANDO MARTÍNEZ CORDERO"
-                style="text-transform: uppercase"
-                [class.error]="cardName?.invalid && cardName?.touched">
-              <div *ngIf="cardName?.invalid && cardName?.touched" class="error-message">
-                <span *ngIf="cardName?.errors?.['required']">Campo obligatorio</span>
-                <span *ngIf="cardName?.errors?.['minlength']">Mínimo 3 caracteres</span>
-              </div>
-            </div>
+          <!-- Error de Stripe -->
+          <div *ngIf="stripeError" class="stripe-error">
+            {{ stripeError }}
+          </div>
 
-            <div class="form-group full-width">
-              <label>Número de tarjeta *</label>
-              <div class="card-input-wrapper">
-                <input type="text" formControlName="cardNumber"
-                  placeholder="1234567890123456"
-                  maxlength="16"
-                  [class.error]="cardNumber?.invalid && cardNumber?.touched">
-                <div class="card-icons">💳</div>
-              </div>
-              <div *ngIf="cardNumber?.invalid && cardNumber?.touched" class="error-message">
-                <span *ngIf="cardNumber?.errors?.['required']">Campo obligatorio</span>
-                <span *ngIf="cardNumber?.errors?.['pattern']">Debe tener 16 dígitos</span>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>Fecha de caducidad *</label>
-                <input type="text" formControlName="expiryDate"
-                  placeholder="MM/AA"
-                  maxlength="5"
-                  [class.error]="expiryDate?.invalid && expiryDate?.touched">
-                <div *ngIf="expiryDate?.invalid && expiryDate?.touched" class="error-message">
-                  <span *ngIf="expiryDate?.errors?.['required']">Campo obligatorio</span>
-                  <span *ngIf="expiryDate?.errors?.['pattern']">Formato MM/AA</span>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label>CVV *</label>
-                <input type="password" formControlName="cvv"
-                  placeholder="123"
-                  maxlength="4"
-                  [class.error]="cvv?.invalid && cvv?.touched">
-                <div *ngIf="cvv?.invalid && cvv?.touched" class="error-message">
-                  <span *ngIf="cvv?.errors?.['required']">Campo obligatorio</span>
-                  <span *ngIf="cvv?.errors?.['pattern']">3 o 4 dígitos</span>
-                </div>
-              </div>
-            </div>
-
-          </form>
+          <!-- Cargando Stripe -->
+          <div *ngIf="!stripeReady && !stripeError" class="stripe-loading">
+            <div class="mini-spinner"></div>
+            Conectando con Stripe...
+          </div>
 
           <div class="form-actions">
-            <button class="btn-back-step" (click)="prevStep()">Volver</button>
-            <button class="btn-next" (click)="nextStep()">Revisar pedido</button>
+            <button class="btn-back-step" (click)="prevStep()" [disabled]="isSavingCard">Volver</button>
+            <button class="btn-next" (click)="nextStep()" [disabled]="!stripeReady || isSavingCard">
+              <span *ngIf="!isSavingCard">Revisar pedido</span>
+              <span *ngIf="isSavingCard">Validando tarjeta...</span>
+            </button>
           </div>
         </div>
 
@@ -266,11 +238,8 @@
               <button class="btn-edit" (click)="currentStep = 2">Editar</button>
             </div>
             <div class="review-content">
-              <p>Tarjeta terminada en
-                <strong>{{ paymentForm.value.cardNumber?.slice(-4) }}</strong>
-              </p>
-              <p>Titular: {{ paymentForm.value.cardName }}</p>
-              <p>Caduca: {{ paymentForm.value.expiryDate }}</p>
+              <p>Tarjeta introducida en el paso anterior</p>
+              <p>Pago procesado de forma segura por <strong>Stripe</strong></p>
             </div>
           </div>
 
@@ -283,8 +252,8 @@
 
           <div class="form-actions" *ngIf="!isProcessing">
             <button class="btn-back-step" (click)="prevStep()">Volver</button>
-            <button class="btn-confirm" (click)="nextStep()">  
-              Confirmar y Pagar {{ total | currency:'EUR':'symbol':'1.2-2' }}
+            <button class="btn-confirm" (click)="nextStep()">
+              Pagar {{ total | currency:'EUR':'symbol':'1.2-2' }} con Stripe
             </button>
           </div>
 
@@ -299,7 +268,11 @@
         <div class="order-items">
           <div *ngFor="let item of cartItems" class="order-item">
             <div class="order-item-info">
-              <img [src]="item.product.imageUrl" [alt]="item.product.name">
+              <div class="order-item-img-wrap">
+                <img [src]="item.product.imageUrl"
+                     [alt]="item.product.name"
+                     (error)="$any($event.target).style.display='none'">
+              </div>
               <div>
                 <p class="order-item-name">{{ item.product.name }}</p>
                 <p class="order-item-qty">Cantidad: {{ item.quantity }}</p>
@@ -322,6 +295,13 @@
               {{ shippingCost === 0 ? 'GRATIS' : (shippingCost | currency:'EUR':'symbol':'1.2-2') }}
             </span>
           </div>
+
+          <!-- Línea de descuento por cupón -->
+          <div *ngIf="appliedCoupon" class="total-line coupon-discount-line">
+            <span>Cupón ({{ appliedCoupon.discountPercent }}%)</span>
+            <span class="discount-value">-{{ discountAmount | currency:'EUR':'symbol':'1.2-2' }}</span>
+          </div>
+
           <div class="total-final">
             <span>Total</span>
             <span>{{ total | currency:'EUR':'symbol':'1.2-2' }}</span>
@@ -330,10 +310,10 @@
 
         <!-- Garantías -->
         <div class="guarantees">
-          <div class="guarantee">✅ Piezas certificadas</div>
-          <div class="guarantee">🔒 Pago seguro</div>
-          <div class="guarantee">🚚 Envío 24-48h</div>
-          <div class="guarantee">↩️ Devolución 30 días</div>
+          <div class="guarantee">Piezas certificadas</div>
+          <div class="guarantee">Pago seguro</div>
+          <div class="guarantee">Envío 24-48h</div>
+          <div class="guarantee">Devolución 30 días</div>
         </div>
       </div>
 

@@ -4,7 +4,6 @@
     <div class="avatar-grande">{{ inicial }}</div>
     <div>
       <h1>{{ firstName }} {{ lastName }}</h1>
-      <p class="rol-badge" [class.admin]="rol === 'Administrador'">{{ rol }}</p>
     </div>
   </div>
 
@@ -16,7 +15,7 @@
   <div *ngIf="!modoEdicion" class="datos-card">
     <div class="datos-card-header">
       <h2>Información de la cuenta</h2>
-      <button class="btn-editar" (click)="activarEdicion()">✏️ Editar</button>
+      <button class="btn-editar" (click)="activarEdicion()">Editar</button>
     </div>
 
     <div class="dato-fila">
@@ -30,10 +29,6 @@
     <div class="dato-fila">
       <span class="dato-etiqueta">Email</span>
       <span class="dato-valor">{{ email }}</span>
-    </div>
-    <div class="dato-fila">
-      <span class="dato-etiqueta">Rol</span>
-      <span class="dato-valor">{{ rol }}</span>
     </div>
   </div>
 
@@ -81,7 +76,7 @@
   </div>
 
   <div class="datos-card info-aviso">
-    <p>🔒 Para cambiar tu contraseña, cierra sesión y usa <strong>"¿Olvidaste tu contraseña?"</strong> en el login.</p>
+    <p>Para cambiar tu contraseña, cierra sesión y usa <strong>"¿Olvidaste tu contraseña?"</strong> en el login.</p>
   </div>
 
 </div>

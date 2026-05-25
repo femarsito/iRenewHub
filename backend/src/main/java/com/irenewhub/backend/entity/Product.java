@@ -1,73 +1,58 @@
-/* Explicacion de Entity
-* Este<paquete sirve para mapear a las tablas SQL
-* y en este caso esta clase mapea la tabla de Productos */
-
-
 package com.irenewhub.backend.entity;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal; //mejor usar este para los precios, para evitar errores de precisión
-import java.util.List;
+import java.math.BigDecimal;
 
-@Entity //le dice a JPA que esta clase es una tabla de la BBDD
-@Table(name = "products") //nombre de la tabla de PostgreSQL
-@Data //genera automaicamente los getters, getters, equals(), hashcode() y toString()
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+// ---- ENTIDAD PRODUCT ----
+// Representa la tabla "products" en PostgreSQL.
+
+@Entity // esta clase es una tabla en la BD
+@Table(name = "products") // nombre de la tabla en PostgreSQL
+@Data // genera getters, setters, equals(), hashCode() y toString() automaticamente
+@Builder // permite crear objetos con Product.builder().name("...").price(...).build()
+@NoArgsConstructor // constructor vacio, necesario para que JPA pueda crear objetos
+@AllArgsConstructor // constructor con todos los campos, necesario para que @Builder funcione
 public class Product {
-    //id (PK) generada automaticamente por PostgreSQL con un autoincrement
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id // clave primaria de la tabla
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // autoincrement, PostgreSQL asigna el id solo
     private Long id;
 
-    //
-    @Column(nullable = false) //NOT NULL
+    @Column(nullable = false) // NOT NULL, el nombre es obligatorio
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false) // categoria del producto: "Bateria", "Pantalla", etc.
     private String category;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
+    @Column(nullable = false, precision = 10, scale = 2) // BigDecimal para dinero: evita errores de precision de double
+    private BigDecimal price; // precision=10 → max 10 digitos, scale=2 -> 2 decimales (ej: 49.99)
 
-    @Column(name = "original_price", precision = 10, scale = 2)
+    @Column(name = "original_price", precision = 10, scale = 2) // precio antes del descuento, puede ser null si no hay descuento
     private BigDecimal originalPrice;
 
-    //ColumnDefinition fuerza el tipo TEXT en vez de VARCHAR
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT") // TEXT = sin limite de caracteres (VARCHAR tiene limite de 255)
     private String description;
 
-    @Column(name = "image_url")
+    @Column(name = "image_url") // ruta de la imagen, puede ser null
     private String imageUrl;
 
     @Column(nullable = false)
     private Integer stock;
 
-    @Column(name = "is_oem", nullable = false)
+    @Column(name = "is_oem", nullable = false) // true = pieza original OEM, false = pieza compatible
     private Boolean isOem;
 
-    // Esto es para la lista de compatibilidades
-    // ["iPhone 14 Pro, iPhone 14"]
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
-            name = "product_compatibility",
-            joinColumns = @JoinColumn(name = "product_id")
-    )
-    @Column(name = "model")
-    private List<String> compatibility;
-
-    // Especificaciones técnicas
-    @Column(nullable = false)
+    @Column(nullable = false) // garantia del producto, ej: "12 meses"
     private String warranty;
 
-    @Column(nullable = false)
+    @Column(nullable = false) // estado del producto, ej: "Nuevo", "Reacondicionado"
     private String condition;
 
-    @Column(nullable = false)
+    @Column(nullable = false) // fabricante del repuesto, ej: "Apple OEM"
     private String manufacturer;
 }

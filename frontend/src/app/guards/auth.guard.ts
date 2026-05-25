@@ -1,15 +1,10 @@
-// ─── GUARDS DE AUTENTICACIÓN ──────────────────────────────────────────────────
-// Los guards se ejecutan ANTES de que Angular muestre la ruta.
-// Si el guard devuelve false, la navegación se cancela y se redirige.
-//
-// AuthGuard  → cualquier ruta privada: redirige a /login si no hay sesión.
-// AdminGuard → rutas exclusivas de admin: redirige a /products si no es ADMIN.
+// Los guards se ejecutan antes de mostrar la ruta. Si devuelven false, redirigen.
+// AuthGuard: redirige a /login si no hay sesión. AdminGuard: redirige a /products si no es ADMIN.
 
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
 import { AuthService } from '../services/auth';
 
-// ─── AUTH GUARD ───────────────────────────────────────────────────────────────
 @Injectable({ providedIn: 'root' })
 export class AuthGuard implements CanActivate {
 
@@ -23,7 +18,6 @@ export class AuthGuard implements CanActivate {
   }
 }
 
-// ─── ADMIN GUARD ──────────────────────────────────────────────────────────────
 @Injectable({ providedIn: 'root' })
 export class AdminGuard implements CanActivate {
 

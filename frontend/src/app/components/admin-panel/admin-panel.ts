@@ -1,4 +1,4 @@
-// ─── PANEL DE ADMINISTRACIÓN ──────────────────────────────────────────────────
+// ---- PANEL DE ADMINISTRACIÓN ----
 // Gestiona las 4 secciones del panel: Productos, Pedidos, Categorías y Usuarios.
 // Cada sección tiene sus propias peticiones HTTP y estado local.
 // Los comentarios explican el WHY de cada decisión, no el WHAT.
@@ -20,14 +20,14 @@ export class AdminPanel implements OnInit {
   tabActivo: string = 'productos';
   nombreAdmin: string = '';
 
-  // ─── PRODUCTOS ──────────────────────────────────────────────────────────────
+  // ---- PRODUCTOS ----
   productos: any[] = [];
   // null = formulario cerrado; objeto = nuevo/editar producto
   productoForm: any = null;
   msgProducto: string = '';
   errorProducto: string = '';
 
-  // ─── PEDIDOS ────────────────────────────────────────────────────────────────
+  // ---- PEDIDOS ----
   pedidos: any[] = [];
   msgPedido: string = '';
 
@@ -41,22 +41,33 @@ export class AdminPanel implements OnInit {
   };
   todosLosEstados = ['PENDING', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
 
-  // ─── CATEGORÍAS ─────────────────────────────────────────────────────────────
+  // ---- CATEGORÍAS ----
   categorias: string[] = [];
   categoriaRenombrando: string | null = null;  // categoría que está siendo renombrada
   nuevoNombreCategoria: string = '';
+  nuevaCategoriaInput: string = '';
   msgCategoria: string = '';
   errorCategoria: string = '';
 
-  // ─── USUARIOS ───────────────────────────────────────────────────────────────
+  // ---- USUARIOS ----
   usuarios: any[] = [];
   msgUsuario: string = '';
 
-  // ─── ESTADÍSTICAS (tarjetas superiores) ─────────────────────────────────────
+  // ---- MENSAJES DE CONTACTO ----
+  mensajes: any[] = [];
+  msgMensaje: string = '';
+
+  // ---- DENUNCIAS ----
+  denuncias: any[] = [];
+  msgDenuncia: string = '';
+  totalDenuncias: number = 0;
+
+  // ---- ESTADÍSTICAS (tarjetas superiores) ----
   totalProductos: number = 0;
   totalPedidos: number = 0;
   totalCategorias: number = 0;
   totalUsuarios: number | null = null;
+  totalMensajes: number = 0;
 
   constructor(
     private http: HttpClient,
@@ -82,6 +93,12 @@ export class AdminPanel implements OnInit {
     this.http.get<any[]>(`${this.API}/admin/orders`).subscribe(o => {
       this.totalPedidos = o.length;
     });
+    this.http.get<any[]>(`${this.API}/admin/messages`).subscribe(m => {
+      this.totalMensajes = m.length;
+    });
+    this.http.get<any[]>(`${this.API}/admin/reports`).subscribe(r => {
+      this.totalDenuncias = r.length;
+    });
   }
 
   // Cambia de pestaña y carga los datos correspondientes
@@ -92,6 +109,8 @@ export class AdminPanel implements OnInit {
     if (tab === 'pedidos')     this.cargarPedidos();
     if (tab === 'categorias')  this.cargarCategorias();
     if (tab === 'usuarios')    this.cargarUsuarios();
+    if (tab === 'mensajes')    this.cargarMensajes();
+    if (tab === 'denuncias')   this.cargarDenuncias();
   }
 
   limpiarMensajes(): void {
@@ -99,6 +118,8 @@ export class AdminPanel implements OnInit {
     this.msgPedido = '';
     this.msgCategoria = '';  this.errorCategoria = '';
     this.msgUsuario = '';
+    this.msgMensaje = '';
+    this.msgDenuncia = '';
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -116,20 +137,17 @@ export class AdminPanel implements OnInit {
   abrirFormProducto(producto?: any): void {
     if (producto) {
       // Clonar para no modificar la lista mientras editamos
-      this.productoForm = {
-        ...producto,
-        // compatibility es List<String> en backend; lo mostramos como texto CSV para editar
-        compatibilityText: (producto.compatibility || []).join(', ')
-      };
+      this.productoForm = { ...producto };
     } else {
       this.productoForm = {
         name: '', category: '', price: '', originalPrice: '',
         description: '', imageUrl: '', stock: 1, isOem: false,
-        compatibilityText: '', warranty: '', condition: 'Nuevo', manufacturer: ''
+        warranty: '6 meses', condition: 'Nuevo', manufacturer: ''
       };
     }
     this.errorProducto = '';
   }
+
 
   cerrarFormProducto(): void {
     this.productoForm = null;
@@ -151,9 +169,6 @@ export class AdminPanel implements OnInit {
       imageUrl:      this.productoForm.imageUrl,
       stock:         parseInt(this.productoForm.stock) || 0,
       isOem:         this.productoForm.isOem,
-      // Convertir "iPhone 13, iPhone 14" → ["iPhone 13", "iPhone 14"]
-      compatibility: this.productoForm.compatibilityText
-                       .split(',').map((s: string) => s.trim()).filter((s: string) => s),
       warranty:      this.productoForm.warranty,
       condition:     this.productoForm.condition,
       manufacturer:  this.productoForm.manufacturer
@@ -179,7 +194,7 @@ export class AdminPanel implements OnInit {
     if (!confirm('¿Eliminar este producto? Esta acción no se puede deshacer.')) return;
     this.http.delete(`${this.API}/products/${id}`).subscribe({
       next: () => { this.msgProducto = 'Producto eliminado.'; this.cargarProductos(); this.cargarEstadisticas(); },
-      error: () => { this.errorProducto = 'Error al eliminar el producto.'; }
+      error: (err) => { this.errorProducto = err.error?.message || 'Error al eliminar el producto.'; }
     });
   }
 
@@ -271,6 +286,22 @@ export class AdminPanel implements OnInit {
     });
   }
 
+  // Crea una categoría llamando al backend, que la guarda en la tabla categories.
+  // Así persiste aunque no haya ningún producto asignado todavía.
+  crearCategoria(): void {
+    const nombre = this.nuevaCategoriaInput.trim();
+    if (!nombre) { this.errorCategoria = 'Escribe el nombre de la nueva categoría.'; return; }
+    this.http.post(`${this.API}/admin/categories`, { name: nombre }).subscribe({
+      next: () => {
+        this.nuevaCategoriaInput = '';
+        this.msgCategoria = `Categoría "${nombre}" creada correctamente.`;
+        this.errorCategoria = '';
+        this.cargarCategorias(); // recarga desde backend para reflejar el cambio
+      },
+      error: (err) => { this.errorCategoria = err.error?.error || 'Error al crear la categoría.'; }
+    });
+  }
+
   eliminarCategoria(nombre: string): void {
     if (!confirm(`¿Eliminar la categoría "${nombre}"? Solo se puede si no tiene productos asignados.`)) return;
     this.http.delete(`${this.API}/admin/categories/${encodeURIComponent(nombre)}`).subscribe({
@@ -295,6 +326,77 @@ export class AdminPanel implements OnInit {
     this.http.delete(`${this.API}/admin/users/${id}`).subscribe({
       next: () => { this.msgUsuario = `Usuario "${nombre}" eliminado.`; this.cargarUsuarios(); this.cargarEstadisticas(); },
       error: () => { this.msgUsuario = 'Error al eliminar el usuario.'; }
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  MENSAJES DE CONTACTO
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  cargarMensajes(): void {
+    this.http.get<any[]>(`${this.API}/admin/messages`).subscribe(m => {
+      this.mensajes = m;
+      this.totalMensajes = m.length;
+    });
+  }
+
+  toggleEstadoMensaje(mensaje: any): void {
+    this.http.put<any>(`${this.API}/admin/messages/${mensaje.id}/status`, {}).subscribe({
+      next: (res) => {
+        mensaje.status = res.status;
+        this.msgMensaje = `Mensaje marcado como ${this.estadoMensajeEspanol(res.status)}.`;
+      },
+      error: () => { this.msgMensaje = 'Error al cambiar el estado.'; }
+    });
+  }
+
+  eliminarMensaje(id: number): void {
+    if (!confirm('¿Eliminar este mensaje? Esta acción no se puede deshacer.')) return;
+    this.http.delete(`${this.API}/admin/messages/${id}`).subscribe({
+      next: () => {
+        this.mensajes = this.mensajes.filter(m => m.id !== id);
+        this.totalMensajes = this.mensajes.length;
+        this.msgMensaje = 'Mensaje eliminado.';
+      },
+      error: () => { this.msgMensaje = 'Error al eliminar el mensaje.'; }
+    });
+  }
+
+  estadoMensajeEspanol(status: string): string {
+    return status === 'REPLIED' ? 'Respondido' : 'Pendiente de respuesta';
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  DENUNCIAS DE COMENTARIOS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  cargarDenuncias(): void {
+    this.http.get<any[]>(`${this.API}/admin/reports`).subscribe(d => {
+      this.denuncias = d;
+      this.totalDenuncias = d.length;
+    });
+  }
+
+  eliminarComentarioDenunciado(reportId: number): void {
+    if (!confirm('¿Eliminar el comentario denunciado? Esta acción no se puede deshacer.')) return;
+    this.http.delete(`${this.API}/admin/reports/${reportId}/comment`).subscribe({
+      next: () => {
+        this.denuncias = this.denuncias.filter(d => d.id !== reportId);
+        this.totalDenuncias = this.denuncias.length;
+        this.msgDenuncia = 'Comentario eliminado correctamente.';
+      },
+      error: () => { this.msgDenuncia = 'Error al eliminar el comentario.'; }
+    });
+  }
+
+  ignorarDenuncia(reportId: number): void {
+    this.http.put(`${this.API}/admin/reports/${reportId}/ignore`, {}).subscribe({
+      next: () => {
+        this.denuncias = this.denuncias.filter(d => d.id !== reportId);
+        this.totalDenuncias = this.denuncias.length;
+        this.msgDenuncia = 'Denuncia ignorada.';
+      },
+      error: () => { this.msgDenuncia = 'Error al ignorar la denuncia.'; }
     });
   }
 }

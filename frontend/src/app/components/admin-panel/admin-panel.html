@@ -9,42 +9,43 @@
   <!-- ─── TARJETAS DE ESTADÍSTICAS (clic para ir a esa sección) ───────────── -->
   <div class="stats-grid">
     <div class="stat-card" (click)="activarTab('productos')" [class.activa]="tabActivo==='productos'">
-      <div class="stat-icon">📦</div>
       <div class="stat-info">
         <span class="stat-number">{{ totalProductos }}</span>
         <span class="stat-label">Productos</span>
       </div>
     </div>
     <div class="stat-card" (click)="activarTab('pedidos')" [class.activa]="tabActivo==='pedidos'">
-      <div class="stat-icon">🛒</div>
       <div class="stat-info">
         <span class="stat-number">{{ totalPedidos }}</span>
         <span class="stat-label">Pedidos</span>
       </div>
     </div>
     <div class="stat-card" (click)="activarTab('categorias')" [class.activa]="tabActivo==='categorias'">
-      <div class="stat-icon">🗂️</div>
       <div class="stat-info">
         <span class="stat-number">{{ totalCategorias }}</span>
         <span class="stat-label">Categorías</span>
       </div>
     </div>
     <div class="stat-card" (click)="activarTab('usuarios')" [class.activa]="tabActivo==='usuarios'">
-      <div class="stat-icon">👥</div>
       <div class="stat-info">
         <span class="stat-number">{{ totalUsuarios !== null ? totalUsuarios : '...' }}</span>
         <span class="stat-label">Usuarios</span>
       </div>
     </div>
+    <div class="stat-card" (click)="activarTab('mensajes')" [class.activa]="tabActivo==='mensajes'">
+      <div class="stat-info">
+        <span class="stat-number">{{ totalMensajes }}</span>
+        <span class="stat-label">Mensajes</span>
+      </div>
+    </div>
+    <div class="stat-card" (click)="activarTab('denuncias')" [class.activa]="tabActivo==='denuncias'">
+      <div class="stat-info">
+        <span class="stat-number">{{ totalDenuncias }}</span>
+        <span class="stat-label">Denuncias</span>
+      </div>
+    </div>
   </div>
 
-  <!-- ─── PESTAÑAS ─────────────────────────────────────────────────────────── -->
-  <div class="admin-tabs">
-    <button (click)="activarTab('productos')"  [class.activo]="tabActivo==='productos'">📦 Productos</button>
-    <button (click)="activarTab('pedidos')"    [class.activo]="tabActivo==='pedidos'">🛒 Pedidos</button>
-    <button (click)="activarTab('categorias')" [class.activo]="tabActivo==='categorias'">🗂️ Categorías</button>
-    <button (click)="activarTab('usuarios')"   [class.activo]="tabActivo==='usuarios'">👥 Usuarios</button>
-  </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════════════
        PESTAÑA: PRODUCTOS
@@ -73,7 +74,11 @@
         </div>
         <div class="form-group">
           <label>Categoría *</label>
-          <input type="text" [(ngModel)]="productoForm.category" placeholder="Pantallas">
+          <!-- Las opciones se cargan dinamicamente del backend, igual que en la pestaña Categorías -->
+          <select [(ngModel)]="productoForm.category">
+            <option value="" disabled>Selecciona una categoría</option>
+            <option *ngFor="let cat of categorias" [value]="cat">{{ cat }}</option>
+          </select>
         </div>
         <div class="form-group">
           <label>Precio (€) *</label>
@@ -99,20 +104,23 @@
         </div>
         <div class="form-group">
           <label>Garantía</label>
-          <input type="text" [(ngModel)]="productoForm.warranty" placeholder="12 meses">
+          <select [(ngModel)]="productoForm.warranty">
+            <option value="Sin garantía">Sin garantía</option>
+            <option value="3 meses">3 meses</option>
+            <option value="6 meses">6 meses</option>
+            <option value="12 meses">12 meses</option>
+          </select>
         </div>
         <div class="form-group">
           <label>Condición</label>
-          <input type="text" [(ngModel)]="productoForm.condition" placeholder="Nuevo">
+          <select [(ngModel)]="productoForm.condition">
+            <option value="Nuevo">Nuevo</option>
+            <option value="Reacondicionado">Reacondicionado</option>
+          </select>
         </div>
         <div class="form-group">
           <label>Fabricante</label>
           <input type="text" [(ngModel)]="productoForm.manufacturer" placeholder="Apple Certified">
-        </div>
-        <div class="form-group full">
-          <label>Compatibilidad <span class="opcional">(separar con comas)</span></label>
-          <input type="text" [(ngModel)]="productoForm.compatibilityText"
-            placeholder="iPhone 13, iPhone 13 Pro, iPhone 13 Pro Max">
         </div>
         <div class="form-group">
           <label class="check-label">
@@ -153,10 +161,10 @@
             <td><span class="chip">{{ p.category }}</span></td>
             <td>{{ p.price | currency:'EUR':'symbol':'1.2-2' }}</td>
             <td [class.stock-bajo]="p.stock < 5">{{ p.stock }}</td>
-            <td>{{ p.isOem ? '✓ OEM' : '—' }}</td>
+            <td>{{ p.isOem ? 'OEM' : '—' }}</td>
             <td class="acciones-col">
-              <button class="btn-tabla-editar" (click)="abrirFormProducto(p)">✏️ Editar</button>
-              <button class="btn-tabla-eliminar" (click)="eliminarProducto(p.id)">🗑️</button>
+              <button class="btn-tabla-editar" (click)="abrirFormProducto(p)">Editar</button>
+              <button class="btn-tabla-eliminar" (click)="eliminarProducto(p.id)">Eliminar</button>
             </td>
           </tr>
         </tbody>
@@ -181,6 +189,7 @@
           <tr>
             <th>Pedido</th>
             <th>Cliente</th>
+            <th>Productos</th>
             <th>Fecha</th>
             <th>Total</th>
             <th>Estado</th>
@@ -194,13 +203,24 @@
               <span class="cliente-nombre">{{ p.customerName }}</span><br>
               <span class="cliente-email">{{ p.customerEmail }}</span>
             </td>
+            <td>
+              <!-- Lista de productos y cantidades del pedido -->
+              <div class="pedido-items">
+                <div *ngFor="let item of p.items" class="pedido-item-linea">
+                  <span class="pedido-item-qty">×{{ item.quantity }}</span>
+                  <span class="pedido-item-nombre">{{ item.productName }}</span>
+                </div>
+              </div>
+            </td>
             <td>{{ p.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
             <td><strong>{{ p.total | currency:'EUR':'symbol':'1.2-2' }}</strong></td>
             <td>
               <!-- Selector de estado: cambia directamente en el backend al elegir -->
-              <select class="estado-select" [class]="clasePorEstado(p.status)"
-                [value]="p.status"
-                (change)="cambiarEstadoPedido(p, $any($event.target).value)">
+              <!-- [ngModel] pre-selecciona la opción correcta al renderizar -->
+              <!-- [ngClass] AÑADE la clase de color sin quitar "estado-select" -->
+              <select class="estado-select" [ngClass]="clasePorEstado(p.status)"
+                [ngModel]="p.status"
+                (ngModelChange)="cambiarEstadoPedido(p, $event)">
                 <option *ngFor="let e of todosLosEstados" [value]="e">
                   {{ estadosEspanol[e] }}
                 </option>
@@ -210,7 +230,7 @@
               <button *ngIf="puedeEliminar(p)"
                 class="btn-tabla-eliminar"
                 (click)="eliminarPedido(p.id, p.orderNumber)">
-                🗑️ Eliminar
+                Eliminar
               </button>
               <span *ngIf="!puedeEliminar(p)" class="sin-accion">—</span>
             </td>
@@ -232,10 +252,14 @@
     <div *ngIf="msgCategoria"   class="banner-exito">✓ {{ msgCategoria }}</div>
     <div *ngIf="errorCategoria" class="banner-error">{{ errorCategoria }}</div>
 
-    <p class="categoria-info">
-      Las categorías se crean automáticamente al asignarlas a un producto.
-      Aquí puedes renombrarlas o eliminarlas (solo si no tienen productos).
-    </p>
+    <!-- Formulario para crear nueva categoria -->
+    <div class="nueva-categoria-form">
+      <input type="text" [(ngModel)]="nuevaCategoriaInput"
+        placeholder="Nombre de la nueva categoría"
+        class="input-nueva-categoria"
+        (keyup.enter)="crearCategoria()">
+      <button class="btn-nuevo" (click)="crearCategoria()">+ Crear categoría</button>
+    </div>
 
     <div class="categorias-lista">
       <div *ngFor="let cat of categorias" class="categoria-item">
@@ -244,8 +268,8 @@
         <ng-container *ngIf="categoriaRenombrando !== cat">
           <span class="categoria-nombre">{{ cat }}</span>
           <div class="categoria-acciones">
-            <button class="btn-tabla-editar" (click)="iniciarRenombrar(cat)">✏️ Renombrar</button>
-            <button class="btn-tabla-eliminar" (click)="eliminarCategoria(cat)">🗑️</button>
+            <button class="btn-tabla-editar" (click)="iniciarRenombrar(cat)">Renombrar</button>
+            <button class="btn-tabla-eliminar" (click)="eliminarCategoria(cat)">Eliminar</button>
           </div>
         </ng-container>
 
@@ -302,13 +326,113 @@
               <button *ngIf="u.email !== authService.getEmail()"
                 class="btn-tabla-eliminar"
                 (click)="eliminarUsuario(u.id, u.firstName + ' ' + u.lastName)">
-                🗑️ Eliminar
+                Eliminar
               </button>
               <span *ngIf="u.email === authService.getEmail()" class="sin-accion">Tú</span>
             </td>
           </tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       PESTAÑA: DENUNCIAS DE COMENTARIOS
+  ════════════════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="tabActivo === 'denuncias'" class="tab-content">
+
+    <div class="tab-toolbar">
+      <h2>Denuncias de Comentarios</h2>
+    </div>
+
+    <div *ngIf="msgDenuncia" class="banner-exito">{{ msgDenuncia }}</div>
+
+    <div *ngIf="denuncias.length === 0" class="estado-vacio">
+      No hay denuncias pendientes.
+    </div>
+
+    <div class="mensajes-lista">
+      <div *ngFor="let d of denuncias" class="mensaje-card denuncia-card">
+
+        <div class="mensaje-header">
+          <div class="mensaje-remitente">
+            <span class="denuncia-label">Denunciante</span>
+            <span class="mensaje-nombre">{{ d.reporterName }}</span>
+            <span class="mensaje-email">{{ d.reporterEmail }}</span>
+          </div>
+          <div class="mensaje-meta">
+            <span class="chip chip-pendiente">Pendiente</span>
+            <span class="mensaje-fecha">{{ d.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+
+        <div class="denuncia-denunciado">
+          <span class="denuncia-label">Comentario de: </span>
+          <strong>{{ d.reportedUserName }}</strong>
+          <span class="mensaje-email"> ({{ d.reportedUserEmail }})</span>
+        </div>
+
+        <div class="mensaje-asunto" style="margin-top:0.5rem">
+          <strong>Motivo:</strong> {{ d.reason }}
+        </div>
+
+        <div class="mensaje-texto">{{ d.commentContent }}</div>
+
+        <div class="mensaje-acciones">
+          <button class="btn-tabla-eliminar" (click)="eliminarComentarioDenunciado(d.id)">
+            Eliminar comentario
+          </button>
+          <button class="btn-tabla-editar" (click)="ignorarDenuncia(d.id)">
+            ✕ Ignorar denuncia
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       PESTAÑA: MENSAJES DE CONTACTO
+  ════════════════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="tabActivo === 'mensajes'" class="tab-content">
+
+    <div class="tab-toolbar">
+      <h2>Mensajes de Contacto</h2>
+    </div>
+
+    <div *ngIf="msgMensaje" class="banner-exito">{{ msgMensaje }}</div>
+
+    <div *ngIf="mensajes.length === 0" class="estado-vacio">
+      No hay mensajes de contacto.
+    </div>
+
+    <div class="mensajes-lista">
+      <div *ngFor="let m of mensajes" class="mensaje-card" [class.mensaje-respondido]="m.status === 'REPLIED'">
+
+        <div class="mensaje-header">
+          <div class="mensaje-remitente">
+            <span class="mensaje-nombre">{{ m.name }}</span>
+            <span class="mensaje-email">{{ m.email }}</span>
+          </div>
+          <div class="mensaje-meta">
+            <span class="chip" [class.chip-respondido]="m.status === 'REPLIED'" [class.chip-pendiente]="m.status !== 'REPLIED'">
+              {{ estadoMensajeEspanol(m.status) }}
+            </span>
+            <span class="mensaje-fecha">{{ m.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+
+        <div class="mensaje-asunto"><strong>Asunto:</strong> {{ m.subject }}</div>
+        <div class="mensaje-texto">{{ m.message }}</div>
+
+        <div class="mensaje-acciones">
+          <button class="btn-tabla-editar" (click)="toggleEstadoMensaje(m)">
+            {{ m.status === 'REPLIED' ? 'Marcar pendiente' : 'Marcar respondido' }}
+          </button>
+          <button class="btn-tabla-eliminar" (click)="eliminarMensaje(m.id)">Eliminar</button>
+        </div>
+
+      </div>
     </div>
   </div>
 

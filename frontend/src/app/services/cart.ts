@@ -1,29 +1,49 @@
-// ─── SERVICIO DEL CARRITO ─────────────────────────────────────────────────────
-// Gestiona los items del carrito con un BehaviorSubject (patrón observable).
-//
-// PERSISTENCIA: el carrito se guarda en localStorage en cada cambio.
-// Así sobrevive a recargas de página (F5) y al restablecimiento de sesión.
-// Solo se borra al llamar a clearCart() (cuando se completa el pedido).
+// Gestiona el carrito con BehaviorSubject. Se persiste en localStorage con clave por usuario
+// (irenewhub_cart_email@ejemplo.com) para que cada cuenta tenga su propio carrito.
 
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { CartItem } from '../models/cart-item.model';
 import { Product } from '../models/product.model';
+import { AuthService } from './auth';
 
-const CART_KEY = 'irenewhub_cart';
+const CART_KEY_PREFIX = 'irenewhub_cart_';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CartService {
 
-  // Inicializamos el BehaviorSubject con los datos guardados en localStorage
-  private cartItemsSubject = new BehaviorSubject<CartItem[]>(this.cargarDeStorage());
+  private cartItemsSubject = new BehaviorSubject<CartItem[]>([]);
   cartItems$ = this.cartItemsSubject.asObservable();
 
-  constructor() {}
+  appliedCoupon: { code: string; discountPercent: number } | null = null;
 
-  // ─── OPERACIONES DEL CARRITO ──────────────────────────────────────────────
+  constructor(private authService: AuthService) {
+    // Al arrancar el servicio cargamos el carrito del usuario actual (si hay sesión)
+    this.recargarParaUsuario();
+  }
+
+  // Devuelve la clave de localStorage específica para el usuario logueado.
+  // Si no hay sesión activa usa "guest" como fallback.
+  private getCartKey(): string {
+    const email = this.authService.getEmail();
+    return CART_KEY_PREFIX + (email || 'guest');
+  }
+
+  // Carga desde localStorage el carrito del usuario actualmente logueado.
+  // Se llama al arrancar la app y después de hacer login.
+  recargarParaUsuario(): void {
+    try {
+      const raw = localStorage.getItem(this.getCartKey());
+      this.cartItemsSubject.next(raw ? JSON.parse(raw) : []);
+    } catch {
+      this.cartItemsSubject.next([]);
+    }
+    this.appliedCoupon = null;
+  }
+
+  // ---- OPERACIONES ----
 
   getCartItems(): CartItem[] {
     return this.cartItemsSubject.getValue();
@@ -85,25 +105,14 @@ export class CartService {
   }
 
   clearCart(): void {
-    localStorage.removeItem(CART_KEY);
+    localStorage.removeItem(this.getCartKey());
     this.cartItemsSubject.next([]);
+    this.appliedCoupon = null;
   }
 
-  // ─── PERSISTENCIA ─────────────────────────────────────────────────────────
-
-  // Emite la nueva lista y la guarda en localStorage de forma atómica
+  // Emite la nueva lista y la guarda en localStorage con la clave del usuario
   private emitir(items: CartItem[]): void {
     this.cartItemsSubject.next(items);
-    localStorage.setItem(CART_KEY, JSON.stringify(items));
-  }
-
-  // Lee el carrito guardado en localStorage al arrancar el servicio
-  private cargarDeStorage(): CartItem[] {
-    try {
-      const raw = localStorage.getItem(CART_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];  // Si el JSON está corrupto, empezamos con carrito vacío
-    }
+    localStorage.setItem(this.getCartKey(), JSON.stringify(items));
   }
 }

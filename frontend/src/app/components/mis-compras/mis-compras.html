@@ -12,7 +12,7 @@
 
   <!-- Sin pedidos -->
   <div *ngIf="!isLoading && pedidos.length === 0" class="estado-vacio">
-    <div class="vacio-icon">🛍️</div>
+    <div class="vacio-icon"></div>
     <h2>Aún no tienes pedidos</h2>
     <p>Cuando realices una compra, aparecerá aquí tu historial.</p>
     <a routerLink="/products" class="btn-explorar">Explorar catálogo</a>
@@ -22,14 +22,26 @@
   <div *ngIf="!isLoading && pedidos.length > 0" class="pedidos-lista">
     <div *ngFor="let pedido of pedidos" class="pedido-card">
       <div class="pedido-header">
-        <span class="pedido-id">{{ pedido.orderNumber }}</span>
-        <span class="pedido-fecha">{{ pedido.createdAt | date:'dd/MM/yyyy' }}</span>
-        <span class="pedido-estado" [class.enviado]="pedido.status === 'SENT'">
-          {{ pedido.status }}
+        <div class="pedido-titulo">
+          <span class="pedido-id">{{ pedido.orderNumber }}</span>
+          <span class="pedido-separator">/</span>
+          <span class="pedido-productos">
+            {{ nombreProductos(pedido.items) }}
+          </span>
+        </div>
+        <span class="pedido-estado"
+          [class.pending]="pedido.status === 'PENDING'"
+          [class.confirmed]="pedido.status === 'CONFIRMED'"
+          [class.shipped]="pedido.status === 'SHIPPED'"
+          [class.delivered]="pedido.status === 'DELIVERED'"
+          [class.cancelled]="pedido.status === 'CANCELLED'">
+          {{ estadoTexto(pedido.status) }}
         </span>
       </div>
-      <div class="pedido-total">
-        Total: <strong>{{ pedido.total | currency:'EUR':'symbol':'1.2-2' }}</strong>
+      <div class="pedido-footer">
+        <span class="pedido-fecha">{{ pedido.createdAt | date:'dd/MM/yyyy' }}</span>
+        <span class="pedido-total">Total: <strong>{{ pedido.total | currency:'EUR':'symbol':'1.2-2' }}</strong></span>
+        <button class="btn-pdf" (click)="descargarPDF(pedido)">Descargar ticket</button>
       </div>
     </div>
   </div>

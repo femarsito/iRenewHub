@@ -1,4 +1,4 @@
-// ─── MÓDULO DE RUTAS ─────────────────────────────────────────────────────────
+// ---- MÓDULO DE RUTAS ----
 // Define qué componente se muestra para cada URL y qué guards la protegen.
 //
 // AuthGuard  → requiere estar autenticado (cualquier rol)
@@ -17,7 +17,8 @@ import { Login }       from './components/login/login';
 import { AdminPanel }  from './components/admin-panel/admin-panel';
 import { MisDatos }    from './components/mis-datos/mis-datos';
 import { MisCompras }  from './components/mis-compras/mis-compras';
-import { Cupones }     from './components/cupones/cupones';
+import { Cupones }        from './components/cupones/cupones';
+import { ResetPassword }  from './components/reset-password/reset-password';
 
 import { AuthGuard, AdminGuard } from './guards/auth.guard';
 
@@ -25,10 +26,11 @@ const routes: Routes = [
   // Raíz → redirige a /home; AuthGuard la protege y manda al login si no hay sesión
   { path: '', redirectTo: '/home', pathMatch: 'full' },
 
-  // ─── PÚBLICA ──────────────────────────────────────────────────────────────
-  { path: 'login', component: Login },
+  // ---- PÚBLICAS (sin login) ----
+  { path: 'login',          component: Login },
+  { path: 'reset-password', component: ResetPassword },
 
-  // ─── RUTAS PROTEGIDAS (requieren login) ───────────────────────────────────
+  // ---- RUTAS PROTEGIDAS (requieren login) ----
   { path: 'home',        component: Home,        canActivate: [AuthGuard] },
   { path: 'products',    component: ProductList, canActivate: [AuthGuard] },
   { path: 'product/:id', component: ProductDetail, canActivate: [AuthGuard] },
@@ -39,7 +41,7 @@ const routes: Routes = [
   { path: 'mis-compras', component: MisCompras,  canActivate: [AuthGuard] },
   { path: 'cupones',     component: Cupones,     canActivate: [AuthGuard] },
 
-  // ─── RUTA EXCLUSIVA ADMIN ─────────────────────────────────────────────────
+  // ---- RUTA EXCLUSIVA ADMIN ----
   { path: 'admin', component: AdminPanel, canActivate: [AuthGuard, AdminGuard] },
 ];
 

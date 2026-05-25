@@ -1,10 +1,9 @@
-// ─── COMPONENTE PRODUCT LIST ──────────────────────────────────────────────────
-// Muestra el catálogo de productos con tres filtros combinables:
-//   1. Categoría  → botones de categoría (Todos, Baterías, Pantallas...)
-//   2. Búsqueda   → barra de texto que filtra por nombre
-//   3. Modelo     → desplegable con los modelos de iPhone compatibles
+// ---- COMPONENTE PRODUCT LIST ----
+// Muestra el catalogo de productos con dos filtros combinables:
+//   1. Categoria  → botones de categoria (Todos, Baterias, Pantallas...)
+//   2. Busqueda   → barra de texto que filtra por nombre
 //
-// applyFilters() combina los tres filtros sobre this.products y actualiza
+// applyFilters() combina los dos filtros sobre this.products y actualiza
 // this.filteredProducts (la lista que se muestra en pantalla).
 
 import { Component, OnInit } from '@angular/core';
@@ -23,11 +22,9 @@ export class ProductList implements OnInit {
   products: Product[] = [];          // Lista completa (no se modifica al filtrar)
   filteredProducts: Product[] = [];  // Lista filtrada que se muestra en pantalla
   categories: string[] = [];
-  availableModels: string[] = [];    // Modelos de iPhone únicos extraídos de los productos
 
   selectedCategory: string = 'Todos';
   searchQuery: string = '';
-  selectedModel: string = 'Todos';
 
   isLoading: boolean = false;
 
@@ -54,20 +51,12 @@ export class ProductList implements OnInit {
         const categoriasUnicas = [...new Set(productos.map(p => p.category))];
         this.categories = ['Todos', ...categoriasUnicas];
 
-        // flatMap aplana el array de arrays de compatibilidad en uno solo
-        const todosLosModelos = productos.flatMap(p => p.compatibility ?? []);
-        const modelosUnicos = [...new Set(todosLosModelos)].sort();
-        this.availableModels = ['Todos', ...modelosUnicos];
-
         if (categoriaInicial) {
           this.selectedCategory = categoriaInicial;
         }
 
         this.applyFilters();
         this.isLoading = false;
-
-        console.log('Productos cargados:', productos.length);
-        console.log('Categorías:', this.categories);
       },
       error: () => {
         this.isLoading = false;
@@ -85,12 +74,7 @@ export class ProductList implements OnInit {
     this.applyFilters();
   }
 
-  onModelChange(model: string): void {
-    this.selectedModel = model;
-    this.applyFilters();
-  }
-
-  // Aplica los tres filtros a la vez. El orden no importa, cada uno reduce el resultado.
+  // Aplica los dos filtros a la vez
   applyFilters(): void {
     let resultado = this.products;
 
@@ -99,14 +83,14 @@ export class ProductList implements OnInit {
     }
 
     if (this.searchQuery.trim() !== '') {
-      const texto = this.searchQuery.toLowerCase();
-      resultado = resultado.filter(p => p.name.toLowerCase().includes(texto));
-    }
+      // normalize('NFD') descompone los caracteres acentuados en letra + acento
+      // replace(/[̀-ͯ]/g, '') elimina los acentos resultantes
+      // Así "camara" encuentra "Cámara" y "bateria" encuentra "Batería"
+      const normalizar = (texto: string) =>
+        texto.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
-    if (this.selectedModel !== 'Todos') {
-      resultado = resultado.filter(p =>
-        p.compatibility?.some(m => m.toLowerCase().includes(this.selectedModel.toLowerCase()))
-      );
+      const textoBuscado = normalizar(this.searchQuery);
+      resultado = resultado.filter(p => normalizar(p.name).includes(textoBuscado));
     }
 
     this.filteredProducts = resultado;

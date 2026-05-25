@@ -1,10 +1,5 @@
-// ─── SERVICIO DE AUTENTICACIÓN ────────────────────────────────────────────────
-// Gestiona el login, el registro, el estado de sesión y la recuperación de contraseña.
-//
-// ALMACENAMIENTO: se usa sessionStorage (NO localStorage) para que la sesión:
-//   ✓ Sobreviva a F5 / recargas de página dentro de la misma pestaña
-//   ✓ Se borre automáticamente al cerrar el navegador o la pestaña
-//   ✗ No persista entre sesiones de navegador (por seguridad)
+// Gestiona login, registro y recuperación de contraseña.
+// Se usa sessionStorage: sobrevive a F5 pero se borra al cerrar el navegador (más seguro que localStorage).
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -63,7 +58,7 @@ export class AuthService {
   isLoggedIn(): boolean { return !!this.getToken(); }
   isAdmin():    boolean { return this.getRole() === 'ADMIN'; }
 
-  // ─── RECUPERAR CONTRASEÑA (DEMO) ──────────────────────────────────────────
+  // ---- RECUPERAR CONTRASEÑA ----
   forgotPassword(email: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/forgot-password`, { email });
   }

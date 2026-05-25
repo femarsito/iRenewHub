@@ -1,6 +1,6 @@
 package com.irenewhub.backend.controller;
 
-// ─── CONTROLADOR DE PERFIL DE USUARIO ────────────────────────────────────────
+// ---- CONTROLADOR DE PERFIL DE USUARIO ----
 // PUT /api/users/me → actualiza nombre y apellido del usuario autenticado.
 // @Transactional garantiza que el findByEmail() y el save() comparten la misma
 // sesión JPA, evitando que la entidad quede "detached" y cause un INSERT en vez
@@ -35,7 +35,7 @@ public class UserController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
-        // Modificar la entidad gestionada por JPA → Hibernate detecta el cambio
+        // Modificar la entidad gestionada por JPA -> Hibernate detecta el cambio
         // y genera UPDATE automáticamente al final de la transacción
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());

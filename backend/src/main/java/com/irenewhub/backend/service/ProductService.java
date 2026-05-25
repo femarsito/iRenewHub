@@ -3,6 +3,7 @@ package com.irenewhub.backend.service;
 import com.irenewhub.backend.dto.ProductResponse;
 import com.irenewhub.backend.entity.Product;
 import com.irenewhub.backend.exception.ResourceNotFoundException;
+import com.irenewhub.backend.repository.OrderRepository;
 import com.irenewhub.backend.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import java.util.List;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final OrderRepository orderRepository;
 
     @Transactional(readOnly = true) //Transaccional garantiza que si algo falla a mitad de la operacion la bdd vuelve al estado anteripr
     public List<ProductResponse> getAllProducts() {
@@ -40,23 +42,10 @@ public class ProductService {
                 .toList();
     }
 
-    // ─── BUSCAR POR NOMBRE ────────────────────────────────────────────────────
-    // Busca productos cuyo nombre contenga la palabra clave (sin distinguir mayúsculas).
-    // Ejemplo: search="pantalla" → encuentra "Pantalla OLED iPhone 14 Pro"
+    // Búsqueda por nombre, sin distinguir mayúsculas. Ej: "pantalla" -> "Pantalla OLED iPhone 14"
     @Transactional(readOnly = true)
     public List<ProductResponse> searchProducts(String query) {
         return productRepository.findByNameContainingIgnoreCase(query)
-                .stream()
-                .map(this::toResponse)
-                .toList();
-    }
-
-    // ─── FILTRAR POR MODELO DE IPHONE ─────────────────────────────────────────
-    // Busca productos compatibles con un modelo de iPhone concreto.
-    // Ejemplo: model="iPhone 13" → encuentra todos los repuestos para ese modelo.
-    @Transactional(readOnly = true)
-    public List<ProductResponse> getProductsByModel(String model) {
-        return productRepository.findByCompatibilityContaining(model)
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -83,7 +72,6 @@ public class ProductService {
         product.setImageUrl(productDetails.getImageUrl());
         product.setStock(productDetails.getStock());
         product.setIsOem(productDetails.getIsOem());
-        product.setCompatibility(productDetails.getCompatibility());
         product.setWarranty(productDetails.getWarranty());
         product.setCondition(productDetails.getCondition());
         product.setManufacturer(productDetails.getManufacturer());
@@ -96,10 +84,19 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Producto no encontrado con id: " + id));
+
+        // Comprobar si algun pedido contiene este producto
+        // Si es asi, no se puede borrar porque romperia el historial de pedidos
+        long pedidosAsociados = orderRepository.countOrdersByProductId(id);
+        if (pedidosAsociados > 0) {
+            throw new RuntimeException(
+                "No se puede eliminar: este producto aparece en " + pedidosAsociados + " pedido(s).");
+        }
+
         productRepository.delete(product);
     }
 
-    // Convierte entidad → DTO (dentro de la transacción, sesión abierta)
+    // Convierte entidad -> DTO (dentro de la transacción, sesión abierta)
     private ProductResponse toResponse(Product product) {
         return ProductResponse.builder()
                 .id(product.getId())
@@ -111,7 +108,6 @@ public class ProductService {
                 .imageUrl(product.getImageUrl())
                 .stock(product.getStock())
                 .isOem(product.getIsOem())
-                .compatibility(product.getCompatibility())
                 .warranty(product.getWarranty())
                 .condition(product.getCondition())
                 .manufacturer(product.getManufacturer())

@@ -1,7 +1,10 @@
+/* CUPONES — Sección de cupones de descuento con diseño de "ticket" */
+
 .cupones-container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 2rem 2rem 4rem;
+  animation: fadeInUp 0.6s var(--ease-out);
 }
 
 .cupones-header {
@@ -9,103 +12,223 @@
 }
 
 .cupones-header h1 {
-  font-size: 2rem;
+  font-size: clamp(1.9rem, 3.5vw, 2.4rem);
   font-weight: 800;
-  color: #1d1d1f;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.4rem;
+  background: linear-gradient(135deg, #1d1d1f, #0071e3 70%, #00c6ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 .cupones-subtitle {
-  color: #86868b;
-  font-size: 1rem;
-  margin-top: 0.3rem;
+  color: var(--text-tertiary);
+  font-size: 1.05rem;
 }
 
+/*---- GRID ---- */
 .cupones-grid {
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 1.3rem;
 }
 
+/*---- TARJETA DE CUPÓN (estilo ticket) ---- */
 .cupon-card {
-  background: white;
-  border-radius: 16px;
-  padding: 1.5rem 1.8rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
-  border: 1px solid rgba(0,0,0,0.05);
+  position: relative;
+  background: linear-gradient(135deg, white 0%, var(--primary-50) 100%);
+  border-radius: var(--radius-xl);
+  padding: 1.8rem 2rem;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--primary-100);
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  position: relative;
+  gap: 2rem;
   overflow: hidden;
+  transition: var(--transition);
+  animation: fadeInUp 0.5s var(--ease-out) both;
 }
 
+.cupon-card:nth-child(1) { animation-delay: 0.05s; }
+.cupon-card:nth-child(2) { animation-delay: 0.1s; }
+.cupon-card:nth-child(3) { animation-delay: 0.15s; }
+.cupon-card:nth-child(4) { animation-delay: 0.2s; }
+
+/* Borde lateral con gradiente */
 .cupon-card::before {
-  content: '';
+  content: "";
   position: absolute;
-  left: 0;
-  top: 0;
+  top: 0; left: 0;
   bottom: 0;
-  width: 6px;
-  background: linear-gradient(135deg, #0071e3, #00c6ff);
+  width: 8px;
+  background: var(--gradient-primary);
+  box-shadow: 0 0 20px rgba(0, 113, 227, 0.4);
 }
 
-.cupon-card.inactivo::before {
-  background: #d2d2d7;
+/* Círculos decorativos a los lados (estilo ticket) */
+.cupon-card::after {
+  content: "";
+  position: absolute;
+  right: 130px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px; height: 16px;
+  background: var(--bg-secondary);
+  border-radius: 50%;
+  box-shadow:
+    0 -32px 0 var(--bg-secondary),
+    0 32px 0 var(--bg-secondary);
+}
+
+.cupon-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl), 0 14px 35px rgba(0, 113, 227, 0.15);
+  border-color: var(--primary-300);
 }
 
 .cupon-card.inactivo {
-  opacity: 0.6;
+  opacity: 0.55;
+  background: var(--bg-secondary);
 }
 
+.cupon-card.inactivo::before {
+  background: var(--border);
+  box-shadow: none;
+}
+
+/* Descuento */
 .cupon-descuento {
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 800;
-  color: #0071e3;
-  min-width: 70px;
+  min-width: 90px;
   text-align: center;
+  background: var(--gradient-primary);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  letter-spacing: -0.04em;
+  filter: drop-shadow(0 4px 8px rgba(0, 113, 227, 0.2));
 }
 
 .cupon-card.inactivo .cupon-descuento {
-  color: #86868b;
+  background: linear-gradient(135deg, #86868b, #b0b0b5);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: none;
 }
 
+/* Info */
 .cupon-info {
   flex: 1;
 }
 
 .cupon-descripcion {
   font-size: 0.95rem;
-  color: #444;
-  margin: 0 0 0.6rem 0;
+  color: var(--text-primary);
+  margin-bottom: 0.7rem;
+  font-weight: 500;
+  letter-spacing: -0.005em;
 }
 
 .cupon-codigo-box {
   display: inline-block;
-  background: #f0f4ff;
-  border: 1px dashed #0071e3;
-  border-radius: 6px;
-  padding: 0.3rem 0.8rem;
+  background: white;
+  border: 1.5px dashed var(--primary);
+  border-radius: var(--radius-md);
+  padding: 0.45rem 1rem;
+  position: relative;
+  transition: var(--transition);
+}
+
+.cupon-card:hover .cupon-codigo-box {
+  border-style: solid;
+  background: var(--primary);
+  transform: scale(1.03);
+}
+
+.cupon-card:hover .cupon-codigo {
+  color: white;
 }
 
 .cupon-codigo {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.95rem;
   font-weight: 700;
-  color: #0071e3;
-  letter-spacing: 1px;
+  color: var(--primary);
+  letter-spacing: 0.1em;
+  transition: color var(--duration-normal);
+}
+
+.cupon-fecha {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  margin: 0.6rem 0 0;
 }
 
 .cupon-estado {
-  min-width: 90px;
+  min-width: 100px;
   text-align: right;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .estado-activo {
-  color: #34c759;
+  color: var(--success);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.9rem;
+  background: var(--success-bg);
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(52, 199, 89, 0.3);
 }
 
 .estado-inactivo {
-  color: #86868b;
+  color: var(--text-tertiary);
+  padding: 0.4rem 0.9rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-light);
+  display: inline-flex;
+  align-items: center;
+}
+
+/*---- LOADING / EMPTY ---- */
+.cupones-loading {
+  color: var(--text-tertiary);
+  text-align: center;
+  padding: 3rem;
+}
+
+.cupones-empty {
+  background: white;
+  border-radius: var(--radius-2xl);
+  padding: 3rem 2rem;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+}
+
+.cupones-hint {
+  margin-top: 1rem;
+  font-size: 0.92rem;
+  color: var(--text-tertiary);
+  line-height: 1.7;
+}
+
+.cupones-hint strong {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .cupon-card { flex-wrap: wrap; gap: 1rem; padding: 1.5rem; }
+  .cupon-card::after { display: none; }
+  .cupon-estado { width: 100%; text-align: left; }
 }

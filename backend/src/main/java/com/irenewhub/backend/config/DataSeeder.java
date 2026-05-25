@@ -10,7 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.List; // sigue siendo necesario para List.of() en productRepository.saveAll()
 
 @Component
 @RequiredArgsConstructor
@@ -54,10 +54,9 @@ public class DataSeeder implements CommandLineRunner {
                         .price(new BigDecimal("299.99"))
                         .originalPrice(new BigDecimal("399.99"))
                         .description("Pantalla OLED original certificada por Apple. Calidad premium con tecnología ProMotion 120Hz.")
-                        .imageUrl("assets/products/pantalla-iphone-14-pro.jpg")
+                        .imageUrl("assets/products/pantalla-iphone-14-pro.webp")
                         .stock(15)
                         .isOem(true)
-                        .compatibility(List.of("iPhone 14 Pro"))
                         .warranty("12 meses")
                         .condition("Nuevo")
                         .manufacturer("Apple Certified")
@@ -69,10 +68,9 @@ public class DataSeeder implements CommandLineRunner {
                         .price(new BigDecimal("49.99"))
                         .originalPrice(null)
                         .description("Batería de reemplazo con certificación Apple. Capacidad de 3227mAh.")
-                        .imageUrl("assets/products/bateria-iphone-13.jpg")
+                        .imageUrl("assets/products/bateria-iphone-13.webp")
                         .stock(30)
                         .isOem(true)
-                        .compatibility(List.of("iPhone 13", "iPhone 13 Pro"))
                         .warranty("6 meses")
                         .condition("Nuevo")
                         .manufacturer("Apple Certified")
@@ -87,7 +85,6 @@ public class DataSeeder implements CommandLineRunner {
                         .imageUrl("assets/products/camara-iphone-15-pro-max.jpg")
                         .stock(8)
                         .isOem(true)
-                        .compatibility(List.of("iPhone 15 Pro Max"))
                         .warranty("12 meses")
                         .condition("Nuevo")
                         .manufacturer("Apple OEM")
@@ -102,7 +99,6 @@ public class DataSeeder implements CommandLineRunner {
                         .imageUrl("assets/products/pantalla-iphone-11.jpg")
                         .stock(25)
                         .isOem(false)
-                        .compatibility(List.of("iPhone 11"))
                         .warranty("6 meses")
                         .condition("Nuevo")
                         .manufacturer("Apple Certified Generic")
@@ -117,7 +113,6 @@ public class DataSeeder implements CommandLineRunner {
                         .imageUrl("assets/products/conector-iphone-12.jpg")
                         .stock(40)
                         .isOem(true)
-                        .compatibility(List.of("iPhone 12", "iPhone 12 Mini", "iPhone 12 Pro"))
                         .warranty("6 meses")
                         .condition("Nuevo")
                         .manufacturer("Apple Certified")
@@ -132,7 +127,6 @@ public class DataSeeder implements CommandLineRunner {
                         .imageUrl("assets/products/altavoz-iphone-13-pro.jpg")
                         .stock(20)
                         .isOem(true)
-                        .compatibility(List.of("iPhone 13 Pro", "iPhone 13 Pro Max"))
                         .warranty("3 meses")
                         .condition("Nuevo")
                         .manufacturer("Apple OEM")

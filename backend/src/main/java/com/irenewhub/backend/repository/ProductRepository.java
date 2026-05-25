@@ -1,15 +1,16 @@
 package com.irenewhub.backend.repository;
 
-// ─── REPOSITORIO DE PRODUCTOS ─────────────────────────────────────────────────
-// Spring Data JPA genera el SQL automáticamente.
-// JpaRepository<Product, Long> ya incluye findAll(), findById(), save(), delete(), count()...
+// ---- REPOSITORIO DE PRODUCTOS ----
+// Interfaz que gestiona todas las consultas a la tabla products.
+// JpaRepository<Product, Long> ya incluye de serie:
+//   findAll(), findById(), save(), deleteById(), count(), existsById()...
 //
-// Los métodos con nombre derivado (findBy...) los genera Spring leyendo el nombre:
-//   findByCategory         → WHERE category = ?
-//   findByNameContaining   → WHERE name LIKE %?%
+// Los metodos con nombre derivado (findBy...) los genera Spring leyendo el nombre:
+//   findByCategory              → WHERE category = ?
+//   findByNameContainingIgnoreCase → WHERE LOWER(name) LIKE LOWER('%?%')
 //
-// El método findByCompatibility usa @Query porque la compatibilidad está en una tabla
-// separada (product_compatibility) y el JOIN no lo puede deducir Spring del nombre solo.
+// Los metodos con @Query usan JPQL: igual que SQL pero con nombres de clases Java
+// en vez de nombres de tablas (Product en vez de products, p.category en vez de category)
 
 import com.irenewhub.backend.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,36 +21,44 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
+@Repository // registra esta interfaz como componente de Spring para inyectarla con @Autowired
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    // Filtrar por categoría exacta → SELECT * FROM products WHERE category = ?
+    // Spring genera: SELECT * FROM products WHERE category = ?
+    // Se usa cuando el usuario filtra por categoria en el catalogo
     List<Product> findByCategory(String category);
 
-    // Filtrar por tipo OEM → SELECT * FROM products WHERE is_oem = ?
+    // Spring genera: SELECT * FROM products WHERE is_oem = ?
+    // Se usa para filtrar productos originales (OEM = Original Equipment Manufacturer)
     List<Product> findByIsOem(Boolean isOem);
 
-    // Buscar por nombre (ignora mayúsculas/minúsculas)
-    // → SELECT * FROM products WHERE LOWER(name) LIKE LOWER('%?%')
+    // Spring genera: SELECT * FROM products WHERE LOWER(name) LIKE LOWER('%?%')
+    // IgnoreCase → no distingue mayusculas/minusculas: "pantalla" encuentra "Pantalla"
+    // Containing → busca el texto en cualquier posicion del nombre (LIKE %texto%)
     List<Product> findByNameContainingIgnoreCase(String name);
 
-    // Filtrar por modelo de iPhone compatible.
-    // Necesita @Query porque la compatibilidad está en la tabla "product_compatibility"
-    // y hay que hacer un JOIN explícito con la colección de strings.
-    // JPQL (Java Persistence Query Language) usa nombres de clases y atributos Java,
-    // no nombres de tablas SQL → "p.compatibility" hace referencia al List<String> de la entidad.
-    @Query("SELECT p FROM Product p JOIN p.compatibility c WHERE LOWER(c) LIKE LOWER(CONCAT('%', :model, '%'))")
-    List<Product> findByCompatibilityContaining(@Param("model") String model);
-
-    // Devuelve todos los nombres de categoría únicos ordenados alfabéticamente
+    // @Query con JPQL: no se puede generar por nombre porque usa DISTINCT y ORDER BY
+    // Devuelve los nombres de categoria unicos ordenados alfabeticamente
+    // Se usa en el panel admin para listar las categorias disponibles
     @Query("SELECT DISTINCT p.category FROM Product p ORDER BY p.category")
     List<String> findAllDistinctCategories();
 
-    // Cuántos productos pertenecen a una categoría (para saber si se puede eliminar)
+    // Spring genera: SELECT COUNT(*) FROM products WHERE category = ?
+    // Se usa antes de eliminar una categoria: si tiene productos no se puede borrar
     long countByCategory(String category);
 
-    // Cambia el nombre de categoría en todos los productos que la usan
+    // @Modifying indica que esta query modifica datos (UPDATE), no solo los lee
+    // @Param conecta el parametro Java con el :nombre dentro de la query
+    // Renombra la categoria en TODOS los productos que la usan de una sola vez
     @Modifying
     @Query("UPDATE Product p SET p.category = :newName WHERE p.category = :oldName")
-    int updateCategoryName(@Param("oldName") String oldName, @Param("newName") String newName);
+    int updateCategoryName(@Param("oldName") String oldName, @Param("newName") String newName); // Panel ADMIN
+
+    // @Modifying necesario porque es un UPDATE directo a la BD
+    // Suma o resta stock sin pasar por el cache de Hibernate (mas fiable para operaciones concurrentes)
+    // delta positivo → suma stock (cuando se cancela un pedido, se devuelve el stock)
+    // delta negativo → resta stock (cuando se reactiva un pedido cancelado)
+    @Modifying
+    @Query("UPDATE Product p SET p.stock = p.stock + :delta WHERE p.id = :id") // Panel ADMIN
+    void updateStock(@Param("id") Long id, @Param("delta") int delta);
 }

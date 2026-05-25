@@ -1,7 +1,10 @@
+/* CONTACT FORM — Formulario de contacto premium */
+
 .form-wrapper {
   max-width: 900px;
   margin: 0 auto;
-  padding-top: 2rem;
+  padding-top: 1.5rem;
+  animation: fadeInUp 0.6s var(--ease-out);
 }
 
 .header {
@@ -10,189 +13,216 @@
 }
 
 .header h1 {
-  font-size: 3rem;
-  color: #1d1d1f;
-  margin-bottom: 1rem;
+  font-size: clamp(2.2rem, 4vw, 3.2rem);
   font-weight: 800;
-  background: linear-gradient(135deg, #1d1d1f, #0071e3);
+  letter-spacing: -0.03em;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #1d1d1f, #0071e3 70%, #00c6ff);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: transparent;
 }
 
 .subtitle {
-  color: #86868b;
-  font-size: 1.3rem;
-  font-weight: 500;
+  color: var(--text-tertiary);
+  font-size: clamp(1rem, 1.3vw, 1.2rem);
+  font-weight: 400;
+  letter-spacing: -0.005em;
 }
 
-/* Alertas */
+/*---- ALERTAS ---- */
 .alert {
-  padding: 1.5rem 2rem;
-  border-radius: 16px;
+  padding: 1.3rem 1.6rem;
+  border-radius: var(--radius-xl);
   margin-bottom: 2rem;
-  animation: slideDown 0.4s ease-out;
-  font-size: 1.05rem;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  font-size: 1rem;
+  animation: fadeInDown 0.4s var(--ease-out);
+  border-left: 4px solid;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
 }
 
 .alert-success {
-  background: linear-gradient(135deg, #d1f2eb, #b8ebd5);
-  border-left: 5px solid #34c759;
+  background: linear-gradient(135deg, #d1f5e0, #b8eccc);
   color: #0f5132;
-  box-shadow: 0 4px 15px rgba(52,199,89,0.2);
+  border-left-color: var(--success);
+  box-shadow: 0 8px 22px rgba(52, 199, 89, 0.2);
 }
 
 .alert-error {
-  background: linear-gradient(135deg, #f8d7da, #f5c2c7);
-  border-left: 5px solid #ff3b30;
+  background: linear-gradient(135deg, #fde2e2, #fbcaca);
   color: #842029;
-  box-shadow: 0 4px 15px rgba(255,59,48,0.2);
+  border-left-color: var(--error);
+  box-shadow: 0 8px 22px rgba(255, 59, 48, 0.2);
 }
 
 .alert strong {
   display: block;
-  margin-bottom: 0.5rem;
-  font-size: 1.15rem;
+  margin-bottom: 0.4rem;
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 
 .alert p {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
-/* Formulario */
+/*---- FORMULARIO ---- */
 .contact-form {
   background: white;
   padding: 3rem;
-  border-radius: 24px;
-  box-shadow: 0 4px 30px rgba(0,0,0,0.08);
+  border-radius: var(--radius-3xl);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--border-light);
+  position: relative;
+  overflow: hidden;
+}
+
+.contact-form::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--gradient-primary);
 }
 
 .form-group {
-  margin-bottom: 2rem;
+  margin-bottom: 1.8rem;
 }
 
 .form-group label {
   display: block;
-  font-weight: 700;
-  color: #1d1d1f;
-  margin-bottom: 0.8rem;
-  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.6rem;
+  font-size: 1rem;
+  letter-spacing: -0.005em;
 }
 
 .form-group input,
 .form-group textarea {
   width: 100%;
-  padding: 1.1rem;
-  border: 2px solid #d2d2d7;
-  border-radius: 12px;
-  font-size: 1.05rem;
+  padding: 1.1rem 1.2rem;
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  font-size: 1rem;
   font-family: inherit;
-  transition: all 0.3s;
+  transition: var(--transition);
+  background: var(--bg-secondary);
+}
+
+.form-group input:hover,
+.form-group textarea:hover {
+  background: white;
+  border-color: var(--border);
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #0071e3;
-  box-shadow: 0 0 0 4px rgba(0,113,227,0.1);
+  background: white;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.12);
+  transform: translateY(-1px);
 }
 
 .form-group input.error,
 .form-group textarea.error {
-  border-color: #ff3b30;
-  box-shadow: 0 0 0 4px rgba(255,59,48,0.1);
+  border-color: var(--error);
+  background: var(--error-bg);
 }
 
 .form-group textarea {
   resize: vertical;
-  min-height: 150px;
+  min-height: 160px;
   line-height: 1.6;
 }
 
-/* Contador de caracteres */
 .char-counter {
   text-align: right;
-  font-size: 0.95rem;
-  color: #86868b;
-  margin-top: 0.5rem;
-  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--text-tertiary);
+  margin-top: 0.4rem;
+  font-weight: 500;
 }
 
-/* Mensajes de error */
 .error-message {
-  margin-top: 0.7rem;
-  color: #ff3b30;
-  font-size: 0.95rem;
+  margin-top: 0.6rem;
+  color: var(--error);
+  font-size: 0.9rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
+  gap: 0.4rem;
+  font-weight: 500;
+  animation: fadeInDown 0.2s var(--ease-out);
 }
 
-.error-message::before {
-  content: '⚠️';
-  font-size: 1.1rem;
-}
-
-/* Botones */
+/*---- BOTONES ---- */
 .form-actions {
   display: flex;
-  gap: 1.2rem;
+  gap: 1rem;
   margin-top: 2.5rem;
 }
 
 .btn-submit,
 .btn-reset {
   flex: 1;
-  padding: 1.3rem;
+  padding: 1.2rem;
   border: none;
-  border-radius: 16px;
-  font-size: 1.1rem;
-  font-weight: 800;
+  border-radius: var(--radius-xl);
+  font-size: 1.05rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: var(--transition);
+  letter-spacing: -0.005em;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-submit {
-  background: linear-gradient(135deg, #0071e3, #00c6ff);
+  background: var(--gradient-primary);
   color: white;
-  box-shadow: 0 4px 20px rgba(0,113,227,0.3);
+  box-shadow: 0 12px 30px rgba(0, 113, 227, 0.35),
+              inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.btn-submit::after {
+  content: "";
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transition: left var(--duration-slower) var(--ease-out);
 }
 
 .btn-submit:hover:not(:disabled) {
   transform: translateY(-3px);
-  box-shadow: 0 8px 30px rgba(0,113,227,0.4);
-  background: linear-gradient(135deg, #0077ed, #00d4ff);
+  box-shadow: 0 18px 40px rgba(0, 113, 227, 0.5);
+}
+
+.btn-submit:hover:not(:disabled)::after {
+  left: 100%;
 }
 
 .btn-submit:disabled {
-  background: #d2d2d7;
+  background: var(--border);
   cursor: not-allowed;
   box-shadow: none;
 }
 
 .btn-reset {
   background: white;
-  color: #0071e3;
-  border: 2px solid #0071e3;
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
 }
 
 .btn-reset:hover:not(:disabled) {
-  background: #f0f8ff;
+  background: var(--primary-50);
   transform: translateY(-3px);
-  box-shadow: 0 4px 15px rgba(0,113,227,0.2);
+  box-shadow: 0 8px 22px rgba(0, 113, 227, 0.2);
 }
 
 .btn-reset:disabled {
@@ -200,7 +230,7 @@
   cursor: not-allowed;
 }
 
-/* Loading */
+/*---- LOADING ---- */
 .loading-text {
   display: flex;
   align-items: center;
@@ -210,53 +240,34 @@
 
 .spinner-small {
   display: inline-block;
-  width: 18px;
-  height: 18px;
-  border: 2px solid #ffffff;
-  border-top: 2px solid transparent;
+  width: 18px; height: 18px;
+  border: 2.5px solid rgba(255, 255, 255, 0.4);
+  border-top-color: white;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.7s linear infinite;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Información adicional */
+/*---- INFO ---- */
 .form-info {
   margin-top: 2.5rem;
   padding-top: 2.5rem;
-  border-top: 3px solid #f0f0f0;
+  border-top: 1px solid var(--border-light);
   text-align: center;
 }
 
 .form-info p {
-  color: #6e6e73;
-  font-size: 1rem;
-  margin-bottom: 0.8rem;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
 }
 
 .form-info strong {
-  color: #1d1d1f;
+  color: var(--text-primary);
   font-weight: 700;
 }
 
-/* Responsive */
+/*---- RESPONSIVE ---- */
 @media (max-width: 768px) {
-  .contact-form {
-    padding: 2rem;
-  }
-
-  .header h1 {
-    font-size: 2.2rem;
-  }
-
-  .subtitle {
-    font-size: 1.1rem;
-  }
-
-  .form-actions {
-    flex-direction: column;
-  }
+  .contact-form { padding: 2rem 1.5rem; }
+  .form-actions { flex-direction: column; }
 }

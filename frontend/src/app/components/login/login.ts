@@ -1,17 +1,20 @@
-// ─── COMPONENTE LOGIN ─────────────────────────────────────────────────────────
+// ---- COMPONENTE LOGIN ----
 // Página de autenticación con tres modos, controlados por la variable "modo":
 //   'login'    → formulario de inicio de sesión
 //   'register' → formulario de registro de nueva cuenta
-//   'forgot'   → flujo de recuperación de contraseña (2 pasos)
+//   'forgot'   → recuperación de contraseña por email
 //
-// Flujo de recuperación (DEMO):
-//   Paso 1: el usuario introduce su email → el backend devuelve un token
-//   Paso 2: el usuario introduce ese token y su nueva contraseña
+// Flujo de recuperación de contraseña:
+//   1. El usuario introduce su email y hace clic en "Enviar enlace"
+//   2. El backend genera un token UUID, lo guarda en la BD y envía un email
+//   3. El email contiene un link: /reset-password?token=xxx
+//   4. El componente ResetPassword gestiona el cambio de contraseña
 
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
+import { CartService } from '../../services/cart';
 
 @Component({
   selector: 'app-login',
@@ -24,14 +27,12 @@ export class Login implements OnInit {
   // Controla qué formulario se muestra: 'login' | 'register' | 'forgot'
   modo: string = 'login';
 
-  // En el flujo de "olvidé contraseña", guardamos el token recibido del backend
-  tokenRecuperacion: string = '';
-  forgotPaso2: boolean = false;  // true = mostrar paso 2 (token + nueva contraseña)
+  // En el flujo de "olvidé contraseña": true cuando el email ya fue enviado
+  emailEnviado: boolean = false;
 
   loginForm!: FormGroup;
   registerForm!: FormGroup;
-  forgotForm!: FormGroup;   // Paso 1: solo email
-  resetForm!: FormGroup;    // Paso 2: token + nueva contraseña
+  forgotForm!: FormGroup;   // Solo pide el email
 
   isLoading: boolean = false;
   errorMessage: string = '';
@@ -40,6 +41,7 @@ export class Login implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthService,
+    private cartService: CartService,
     private router: Router
   ) { }
 
@@ -65,22 +67,16 @@ export class Login implements OnInit {
     this.forgotForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]]
     });
-
-    this.resetForm = this.formBuilder.group({
-      token:       ['', [Validators.required]],
-      newPassword: ['', [Validators.required, Validators.minLength(6)]]
-    });
   }
 
   cambiarModo(nuevoModo: string): void {
     this.modo = nuevoModo;
     this.errorMessage = '';
     this.successMessage = '';
-    this.forgotPaso2 = false;
-    this.tokenRecuperacion = '';
+    this.emailEnviado = false;
   }
 
-  // ─── GETTERS ──────────────────────────────────────────────────────────────
+  // ---- GETTERS ----
   get loginEmail()    { return this.loginForm.get('email'); }
   get loginPassword() { return this.loginForm.get('password'); }
   get regFirstName()  { return this.registerForm.get('firstName'); }
@@ -88,10 +84,8 @@ export class Login implements OnInit {
   get regEmail()      { return this.registerForm.get('email'); }
   get regPassword()   { return this.registerForm.get('password'); }
   get forgotEmail()   { return this.forgotForm.get('email'); }
-  get resetToken()    { return this.resetForm.get('token'); }
-  get resetNewPass()  { return this.resetForm.get('newPassword'); }
 
-  // ─── LOGIN ────────────────────────────────────────────────────────────────
+  // ---- LOGIN ----
   onLogin(): void {
     if (this.loginForm.invalid) {
       Object.keys(this.loginForm.controls).forEach(k => this.loginForm.get(k)?.markAsTouched());
@@ -101,8 +95,11 @@ export class Login implements OnInit {
     this.errorMessage = '';
     const { email, password } = this.loginForm.value;
     this.authService.login(email, password).subscribe({
-      // tap() ya guardó el rol en localStorage antes de llegar aquí
-      next: () => this.router.navigate(this.authService.isAdmin() ? ['/admin'] : ['/home']),
+      // tap() ya guardó el rol en sessionStorage — ahora cargamos el carrito de este usuario
+      next: () => {
+        this.cartService.recargarParaUsuario();
+        this.router.navigate(this.authService.isAdmin() ? ['/admin'] : ['/home']);
+      },
       error: (err) => {
         this.isLoading = false;
         this.errorMessage = err.status === 401
@@ -112,7 +109,7 @@ export class Login implements OnInit {
     });
   }
 
-  // ─── REGISTRO ─────────────────────────────────────────────────────────────
+  // ---- REGISTRO ----
   onRegister(): void {
     if (this.registerForm.invalid) {
       Object.keys(this.registerForm.controls).forEach(k => this.registerForm.get(k)?.markAsTouched());
@@ -122,7 +119,10 @@ export class Login implements OnInit {
     this.errorMessage = '';
     const { firstName, lastName, email, password } = this.registerForm.value;
     this.authService.register(firstName, lastName, email, password).subscribe({
-      next: () => this.router.navigate(['/home']),  // Los nuevos usuarios siempre son USER
+      next: () => {
+        this.cartService.recargarParaUsuario();
+        this.router.navigate(['/home']);
+      },
       error: (err) => {
         this.isLoading = false;
         this.errorMessage = err.status === 409
@@ -132,7 +132,9 @@ export class Login implements OnInit {
     });
   }
 
-  // ─── RECUPERAR CONTRASEÑA: PASO 1 ─────────────────────────────────────────
+  // ---- RECUPERAR CONTRASEÑA ----
+  // Envía el email con el enlace. El cambio de contraseña lo gestiona
+  // el componente ResetPassword en la ruta /reset-password?token=xxx
   onForgotPassword(): void {
     if (this.forgotForm.invalid) {
       this.forgotForm.get('email')?.markAsTouched();
@@ -142,38 +144,13 @@ export class Login implements OnInit {
     this.errorMessage = '';
     const { email } = this.forgotForm.value;
     this.authService.forgotPassword(email).subscribe({
-      next: (respuesta) => {
-        this.isLoading = false;
-        this.tokenRecuperacion = respuesta.token;
-        this.forgotPaso2 = true;
-        this.resetForm.patchValue({ token: respuesta.token });
-      },
-      error: () => {
-        this.isLoading = false;
-        this.errorMessage = 'No existe cuenta con ese email.';
-      }
-    });
-  }
-
-  // ─── RECUPERAR CONTRASEÑA: PASO 2 ─────────────────────────────────────────
-  onResetPassword(): void {
-    if (this.resetForm.invalid) {
-      Object.keys(this.resetForm.controls).forEach(k => this.resetForm.get(k)?.markAsTouched());
-      return;
-    }
-    this.isLoading = true;
-    this.errorMessage = '';
-    const { token, newPassword } = this.resetForm.value;
-    this.authService.resetPassword(token, newPassword).subscribe({
       next: () => {
         this.isLoading = false;
-        this.successMessage = '¡Contraseña actualizada! Ya puedes iniciar sesión.';
-        this.forgotPaso2 = false;
-        this.modo = 'login';
+        this.emailEnviado = true;  // Mostrar confirmación "Revisa tu bandeja"
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.error?.message || 'Token inválido o expirado. Solicita uno nuevo.';
+        this.errorMessage = err.error?.message || err.message || 'Error al enviar el email. Inténtalo de nuevo.';
       }
     });
   }

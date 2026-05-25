@@ -1,4 +1,4 @@
-// ─── COMPONENTE MIS DATOS ─────────────────────────────────────────────────────
+// ---- COMPONENTE MIS DATOS ----
 // Muestra y permite editar los datos del usuario autenticado.
 // Al guardar, llama a PUT /api/users/me y actualiza localStorage con los nuevos valores.
 

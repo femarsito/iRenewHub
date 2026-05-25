@@ -2,14 +2,17 @@
   <div class="navbar-container">
 
     <!-- Logo -->
-    <h1 class="logo" routerLink="/products">iRenewHub</h1>
+    <div class="logo" routerLink="/home">
+      <img src="assets/irenewhub_logo.png" alt="iRenewHub" class="logo-img">
+      <span>iRenewHub</span>
+    </div>
 
     <!-- Links de navegación (solo visibles si hay sesión) -->
     <ul class="nav-links" *ngIf="authService.isLoggedIn()">
       <li><a routerLink="/products" routerLinkActive="active">Productos</a></li>
       <li><a routerLink="/contact"  routerLinkActive="active">Contacto</a></li>
       <li *ngIf="authService.isAdmin()">
-        <a routerLink="/admin" routerLinkActive="active" class="admin-link">⚙️ Admin</a>
+        <a routerLink="/admin" routerLinkActive="active" class="admin-link">Admin</a>
       </li>
     </ul>
 
@@ -23,9 +26,6 @@
           🛒
           <span class="cart-badge" *ngIf="cartItemCount > 0">{{ cartItemCount }}</span>
         </a>
-
-        <!-- Badge ADMIN -->
-        <span *ngIf="authService.isAdmin()" class="admin-badge">ADMIN</span>
 
         <!-- ─── CÍRCULO DE PERFIL ESTILO YOUTUBE ──────────────────────────── -->
         <div class="perfil-container">
@@ -51,19 +51,19 @@
 
             <!-- Opciones del menú -->
             <a routerLink="/perfil"      (click)="cerrarMenu()" class="menu-item">
-              <span class="menu-item-icon">👤</span> Mis datos
+              Mis datos
             </a>
             <a routerLink="/mis-compras" (click)="cerrarMenu()" class="menu-item">
-              <span class="menu-item-icon">🛍️</span> Mis compras
+              Mis compras
             </a>
             <a routerLink="/cupones"     (click)="cerrarMenu()" class="menu-item">
-              <span class="menu-item-icon">🎟️</span> Cupones de descuento
+              Cupones de descuento
             </a>
 
             <div class="perfil-menu-divider"></div>
 
             <button (click)="logout()" class="menu-item menu-item-logout">
-              <span class="menu-item-icon">🚪</span> Cerrar sesión
+              Cerrar sesión
             </button>
 
           </div>

@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-//le dice a Spring que no cree sesiones HTTP. Con JWT no las necesitamos, ya que se autentica sola con el token.
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,18 +25,15 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
 
-    /* CORS
-    * Cuando Angular hace una petición a tu API, el navegador primero envía una petición OPTIONS
-    * (llamada preflight) preguntando: "¿me permites hacer esto?". Tu backend responde con las
-    * cabeceras CORS indicando qué está permitido, y solo entonces el navegador deja pasar la
-    * petición real. */
+    // El navegador envía una petición OPTIONS (preflight) antes de la petición real para verificar
+    // que el backend la permite. Sin esta config CORS, Angular no podría llamar a la API.
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // sin sesiones HTTP, cada petición se autentica con el JWT
                 )
                 .authorizeHttpRequests(auth -> auth
 
@@ -45,9 +41,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
 
+                        // Comentarios: cualquier usuario autenticado puede comentar/verificar compra
+                        .requestMatchers(HttpMethod.POST,   "/api/products/*/comments").authenticated()
+                        .requestMatchers(HttpMethod.GET,    "/api/products/*/can-comment").authenticated()
+
                         // Rutas de admin — solo ADMIN puede crear/editar/borrar productos y ver stats
-                        .requestMatchers(HttpMethod.POST, "/api/products/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST,   "/api/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/api/products/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
@@ -55,11 +55,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/orders/**").authenticated()
                         .requestMatchers("/api/users/**").authenticated()
                         .requestMatchers("/api/contact/**").permitAll()
+                        .requestMatchers("/api/comments/**").authenticated()
+                        .requestMatchers("/api/coupons/**").authenticated()
 
                         // Cualquier otra ruta requiere autenticación
                         .anyRequest().authenticated()
                 )
-                //Coloca el filtro JWT antes del filtro de autenticacion por usuario/contraseña de Spring.
+                        // el filtro JWT va antes que el filtro de usuario/contraseña de Spring
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -73,16 +75,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        //Solo localhost:4200 puede llamar a la API. En produccion se añadiria el nombre real
-        config.setAllowedOrigins(List.of("http://localhost:4200"));
-        //Permite GET, POST, PUT, DELETE Y OPTIONS
+        config.setAllowedOrigins(List.of("http://localhost:4200")); // en producción se cambiaría al dominio real
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        //Acepta cualquier cabecera incluyendo Authorization, que necesitaremos para JWT
-        config.setAllowedHeaders(List.of("*"));
-        //Permite enviar cookies y cabeceras de autenticacion
+        config.setAllowedHeaders(List.of("*")); // acepta cualquier cabecera, incluida Authorization
         config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // api aplica esta configuracion solo a rutas de la API
         source.registerCorsConfiguration("/api/**", config);
         return source;
     }

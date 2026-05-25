@@ -2,24 +2,37 @@
 
   <div class="cupones-header">
     <h1>Mis Cupones</h1>
-    <p class="cupones-subtitle">Descuentos disponibles para tus próximas compras</p>
+    <p class="cupones-subtitle">Cupones ganados por tus comentarios más valorados</p>
   </div>
 
-  <div class="cupones-grid">
-    <div *ngFor="let cupon of cupones" class="cupon-card" [class.inactivo]="!cupon.activo">
+  <div *ngIf="isLoading" class="cupones-loading">Cargando cupones...</div>
 
-      <div class="cupon-descuento">{{ cupon.descuento }}</div>
+  <div *ngIf="!isLoading && cupones.length === 0" class="cupones-empty">
+    <p>Aún no tienes cupones.</p>
+    <p class="cupones-hint">
+      Deja una opinión en un producto que hayas comprado. Si tu comentario recibe
+      <strong>5 likes</strong> recibirás automáticamente un cupón de <strong>5% de descuento</strong>.
+    </p>
+  </div>
+
+  <div class="cupones-grid" *ngIf="!isLoading && cupones.length > 0">
+    <div *ngFor="let c of cupones" class="cupon-card" [class.inactivo]="c.used">
+
+      <div class="cupon-descuento">{{ c.discountPercent }}%</div>
 
       <div class="cupon-info">
-        <p class="cupon-descripcion">{{ cupon.descripcion }}</p>
+        <p class="cupon-descripcion">
+          {{ c.used ? 'Cupón ya utilizado' : 'Descuento por comentario destacado — ¡5 likes alcanzados!' }}
+        </p>
         <div class="cupon-codigo-box">
-          <span class="cupon-codigo">{{ cupon.codigo }}</span>
+          <span class="cupon-codigo">{{ c.code }}</span>
         </div>
+        <p class="cupon-fecha">Obtenido el {{ c.createdAt | date:'dd/MM/yyyy' }}</p>
       </div>
 
       <div class="cupon-estado">
-        <span *ngIf="cupon.activo" class="estado-activo">✓ Disponible</span>
-        <span *ngIf="!cupon.activo" class="estado-inactivo">Expirado</span>
+        <span *ngIf="!c.used" class="estado-activo">✓ Disponible</span>
+        <span *ngIf="c.used"  class="estado-inactivo">Utilizado</span>
       </div>
 
     </div>

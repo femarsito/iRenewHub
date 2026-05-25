@@ -1,4 +1,4 @@
-// ─── SERVICIO DE PRODUCTOS ────────────────────────────────────────────────────
+// ---- SERVICIO DE PRODUCTOS ----
 // Centraliza todas las llamadas HTTP al endpoint de productos del backend.
 // Patrón: Componente → ProductService → HTTP → Backend (Spring Boot) → PostgreSQL
 
@@ -76,7 +76,7 @@ export class ProductService {
     );
   }
 
-  // ─── ADAPTACIÓN DE MODELOS ────────────────────────────────────────────────
+  // ---- ADAPTACIÓN DE MODELOS ----
   // El backend devuelve campos planos (isOem, warranty, condition, manufacturer).
   // El frontend espera isOEM y specifications anidado.
   // Este método es el ÚNICO punto de transformación entre ambos modelos.
@@ -91,7 +91,6 @@ export class ProductService {
       imageUrl: raw.imageUrl,
       stock: raw.stock,
       isOEM: raw.isOem,           // Backend: isOem → Frontend: isOEM
-      compatibility: raw.compatibility || [],
       specifications: {
         warranty: raw.warranty,
         condition: raw.condition,

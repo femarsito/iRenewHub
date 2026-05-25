@@ -8,7 +8,7 @@
 
   <!-- Mensaje de error -->
   <div *ngIf="!isLoading && errorMessage" class="error-message">
-    <h2>❌ {{ errorMessage }}</h2>
+    <h2>{{ errorMessage }}</h2>
     <button class="btn-back" (click)="goBack()">Volver al catálogo</button>
   </div>
 
@@ -69,16 +69,6 @@
           <p>{{ product.description }}</p>
         </div>
 
-        <!-- Compatibilidad -->
-        <div class="compatibility-section">
-          <h3>Compatibilidad</h3>
-          <div class="compatibility-tags">
-            <span *ngFor="let model of product.compatibility" class="tag">
-              {{ model }}
-            </span>
-          </div>
-        </div>
-
         <!-- Especificaciones técnicas -->
         <div class="specifications">
           <h3>Especificaciones Técnicas</h3>
@@ -122,5 +112,136 @@
       </div>
     </div>
   </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       ZONA DE COMENTARIOS
+  ════════════════════════════════════════════════════════════════════════ -->
+  <section *ngIf="product" class="comments-section">
+
+    <h2 class="comments-title">Opiniones del producto</h2>
+
+    <!-- Mensajes globales -->
+    <div *ngIf="reportSuccess" class="comment-banner-ok">{{ reportSuccess }}</div>
+
+    <!-- ─── FORMULARIO NUEVO COMENTARIO ─── -->
+    <div class="new-comment-box">
+      <ng-container *ngIf="canComment; else noCommentMsg">
+        <textarea
+          [(ngModel)]="newCommentText"
+          placeholder="Escribe tu opinión sobre este producto..."
+          rows="3"
+          class="comment-textarea">
+        </textarea>
+        <div *ngIf="commentError" class="comment-banner-err">{{ commentError }}</div>
+        <div *ngIf="commentSuccess" class="comment-banner-ok">{{ commentSuccess }}</div>
+        <button class="btn-comment-submit" (click)="submitComment()"
+          [disabled]="!newCommentText.trim()">
+          Publicar comentario
+        </button>
+      </ng-container>
+      <ng-template #noCommentMsg>
+        <p class="no-comment-info">
+          Solo los clientes que han comprado este producto pueden dejar una opinión.
+        </p>
+      </ng-template>
+    </div>
+
+    <!-- ─── LISTA DE COMENTARIOS ─── -->
+    <div *ngIf="comments.length === 0" class="comments-empty">
+      Aún no hay opiniones. ¡Sé el primero en comentar!
+    </div>
+
+    <div class="comments-list">
+      <div *ngFor="let c of comments" class="comment-card">
+
+        <!-- Cabecera -->
+        <div class="comment-header">
+          <div class="comment-avatar">{{ c.userName.charAt(0) }}</div>
+          <div class="comment-meta">
+            <span class="comment-author">{{ c.userName }}</span>
+            <span class="comment-date">{{ c.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+
+        <!-- Texto -->
+        <p class="comment-body">{{ c.content }}</p>
+
+        <!-- Acciones -->
+        <div class="comment-actions">
+          <button class="btn-like" [class.liked]="c.hasLiked" (click)="toggleLike(c)">
+            {{ c.hasLiked ? '♥' : '♡' }} {{ c.likes }}
+          </button>
+          <button class="btn-reply-toggle" (click)="startReply(c.id)">
+            Responder
+          </button>
+          <button class="btn-report-toggle" (click)="startReport(c.id)"
+            *ngIf="!c.isOwn">
+            Denunciar
+          </button>
+        </div>
+
+        <!-- Formulario respuesta -->
+        <div *ngIf="replyingTo === c.id" class="reply-form">
+          <textarea [(ngModel)]="replyText" placeholder="Escribe tu respuesta..."
+            rows="2" class="comment-textarea small"></textarea>
+          <div class="reply-form-actions">
+            <button class="btn-comment-submit small" (click)="submitReply(c)"
+              [disabled]="!replyText.trim()">Responder</button>
+            <button class="btn-cancel-reply" (click)="replyingTo = null">Cancelar</button>
+          </div>
+        </div>
+
+        <!-- Formulario denuncia -->
+        <div *ngIf="reportingId === c.id" class="report-form">
+          <p class="report-label">Motivo de la denuncia:</p>
+          <textarea [(ngModel)]="reportReason" placeholder="Describe el motivo..."
+            rows="2" class="comment-textarea small"></textarea>
+          <div *ngIf="reportError" class="comment-banner-err small">{{ reportError }}</div>
+          <div class="reply-form-actions">
+            <button class="btn-report-submit" (click)="submitReport(c.id)"
+              [disabled]="!reportReason.trim()">Enviar denuncia</button>
+            <button class="btn-cancel-reply" (click)="reportingId = null">Cancelar</button>
+          </div>
+        </div>
+
+        <!-- Respuestas anidadas -->
+        <div *ngIf="c.replies?.length > 0" class="replies-list">
+          <div *ngFor="let r of c.replies" class="comment-card reply">
+
+            <div class="comment-header">
+              <div class="comment-avatar small">{{ r.userName.charAt(0) }}</div>
+              <div class="comment-meta">
+                <span class="comment-author">{{ r.userName }}</span>
+                <span class="comment-date">{{ r.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+            </div>
+            <p class="comment-body">{{ r.content }}</p>
+            <div class="comment-actions">
+              <button class="btn-like" [class.liked]="r.hasLiked" (click)="toggleLike(r)">
+                {{ r.hasLiked ? '♥' : '♡' }} {{ r.likes }}
+              </button>
+              <button class="btn-report-toggle" (click)="startReport(r.id)" *ngIf="!r.isOwn">
+                Denunciar
+              </button>
+            </div>
+
+            <div *ngIf="reportingId === r.id" class="report-form">
+              <p class="report-label">Motivo de la denuncia:</p>
+              <textarea [(ngModel)]="reportReason" placeholder="Describe el motivo..."
+                rows="2" class="comment-textarea small"></textarea>
+              <div *ngIf="reportError" class="comment-banner-err small">{{ reportError }}</div>
+              <div class="reply-form-actions">
+                <button class="btn-report-submit" (click)="submitReport(r.id)"
+                  [disabled]="!reportReason.trim()">Enviar denuncia</button>
+                <button class="btn-cancel-reply" (click)="reportingId = null">Cancelar</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
 
 </div>

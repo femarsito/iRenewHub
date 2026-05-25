@@ -1,7 +1,7 @@
 <div class="container">
 
   <div class="cart-header">
-    <h1>🛒 Tu Carrito</h1>
+    <h1>Tu Carrito</h1>
     <p *ngIf="totalItems > 0" class="cart-summary">
       {{ totalItems }} {{ totalItems === 1 ? 'producto' : 'productos' }} en tu carrito
     </p>
@@ -13,7 +13,7 @@
     <h2>Tu carrito está vacío</h2>
     <p>Explora nuestro catálogo y añade productos a tu carrito</p>
     <button class="btn-primary" (click)="goToProducts()">
-      Ver Catálogo →
+      Ver Catálogo
     </button>
   </div>
 
@@ -93,14 +93,46 @@
         </span>
       </div>
       <div *ngIf="totalPrice < 50" class="shipping-notice">
-        ℹ️ Añade {{ (50 - totalPrice) | currency:'EUR':'symbol':'1.2-2' }} más para envío gratis
+        Añade {{ (50 - totalPrice) | currency:'EUR':'symbol':'1.2-2' }} más para envío gratis
+      </div>
+
+      <!-- Sección cupón -->
+      <div class="coupon-section">
+        <p class="coupon-label">¿Tienes un cupón de descuento?</p>
+
+        <!-- Si ya hay cupón aplicado -->
+        <div *ngIf="appliedCoupon" class="coupon-applied">
+          <span>{{ appliedCoupon.code }} — {{ appliedCoupon.discountPercent }}% dto.</span>
+          <button class="btn-remove-coupon" (click)="removeCoupon()">✕</button>
+        </div>
+
+        <!-- Input para introducir cupón -->
+        <div *ngIf="!appliedCoupon" class="coupon-input-row">
+          <input
+            [(ngModel)]="couponInput"
+            placeholder="Ej: IRH-ABCD1234"
+            class="coupon-input"
+            (keyup.enter)="applyCoupon()">
+          <button class="btn-apply-coupon" (click)="applyCoupon()" [disabled]="isValidatingCoupon">
+            {{ isValidatingCoupon ? '...' : 'Aplicar' }}
+          </button>
+        </div>
+
+        <p *ngIf="couponSuccess" class="coupon-success">{{ couponSuccess }}</p>
+        <p *ngIf="couponError"   class="coupon-error">{{ couponError }}</p>
       </div>
 
       <div class="summary-divider"></div>
 
+      <!-- Línea de descuento (solo si hay cupón aplicado) -->
+      <div *ngIf="appliedCoupon" class="summary-line discount-line">
+        <span>Descuento ({{ appliedCoupon.discountPercent }}%)</span>
+        <span class="discount-amount">-{{ discountAmount | currency:'EUR':'symbol':'1.2-2' }}</span>
+      </div>
+
       <div class="summary-total">
         <span>Total</span>
-        <span>{{ (totalPrice + (totalPrice >= 50 ? 0 : 4.99)) | currency:'EUR':'symbol':'1.2-2' }}</span>
+        <span>{{ finalTotal | currency:'EUR':'symbol':'1.2-2' }}</span>
       </div>
 
       <!-- Botones de acción -->

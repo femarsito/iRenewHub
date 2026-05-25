@@ -13,11 +13,6 @@
       [value]="searchQuery"
       (input)="onSearchChange($any($event.target).value)">
 
-    <select class="model-select" [value]="selectedModel" (change)="onModelChange($any($event.target).value)">
-      <option *ngFor="let model of availableModels" [value]="model">
-        {{ model === 'Todos' ? 'Todos los modelos' : model }}
-      </option>
-    </select>
   </div>
 
   <!-- Filtro por categorías -->
@@ -53,13 +48,6 @@
         <p class="category">{{ product.category }}</p>
         <p class="description">{{ product.description }}</p>
 
-        <div class="compatibility">
-          <strong>Compatible con:</strong>
-          <span *ngFor="let model of product.compatibility; let last = last">
-            {{ model }}<span *ngIf="!last">, </span>
-          </span>
-        </div>
-
         <div class="price-section">
           <span class="current-price">{{ product.price | currency:'EUR':'symbol':'1.2-2' }}</span>
           <span *ngIf="product.originalPrice" class="original-price">
@@ -69,7 +57,7 @@
 
         <p class="stock" [class.low-stock]="product.stock < 10">
           <span *ngIf="product.stock > 0">En stock ({{ product.stock }} unidades)</span>
-          <span *ngIf="product.stock === 0" class="out-of-stock">✗ Agotado</span>
+          <span *ngIf="product.stock === 0" class="out-of-stock">Agotado</span>
         </p>
 
         <button class="btn-detail" (click)="viewDetail(product.id)">

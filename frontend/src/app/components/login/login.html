@@ -1,8 +1,22 @@
-<div class="login-container">
+<div class="login-page">
+
+  <!-- Fondo decorativo -->
+  <div class="bg-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+  </div>
+
   <div class="login-card">
 
+    <!-- Logo y marca -->
+    <div class="brand">
+      <img src="assets/irenewhub_logo.png" alt="iRenewHub" class="brand-logo">
+      <p class="brand-tagline">Repuestos Originales (OEM) para tu iPhone</p>
+    </div>
+
     <!-- Tabs de navegación entre modos -->
-    <div class="tabs">
+    <div class="tabs" *ngIf="modo !== 'forgot'">
       <button [class.active]="modo === 'login'" (click)="cambiarModo('login')">
         Iniciar Sesión
       </button>
@@ -11,10 +25,10 @@
       </button>
     </div>
 
-    <div *ngIf="errorMessage" class="error-banner">{{ errorMessage }}</div>
+    <div *ngIf="errorMessage"   class="error-banner">{{ errorMessage }}</div>
     <div *ngIf="successMessage" class="success-banner">{{ successMessage }}</div>
 
-    <!-- FORMULARIO LOGIN -->
+    <!-- ─── LOGIN ─── -->
     <form *ngIf="modo === 'login'" [formGroup]="loginForm" (ngSubmit)="onLogin()">
       <div class="form-group">
         <label>Email</label>
@@ -36,7 +50,7 @@
       </p>
     </form>
 
-    <!-- FORMULARIO REGISTRO -->
+    <!-- ─── REGISTRO ─── -->
     <form *ngIf="modo === 'register'" [formGroup]="registerForm" (ngSubmit)="onRegister()">
       <div class="form-row">
         <div class="form-group">
@@ -67,13 +81,16 @@
       </button>
     </form>
 
-    <!-- RECUPERAR CONTRASEÑA -->
+    <!-- ─── RECUPERAR CONTRASEÑA ─── -->
     <div *ngIf="modo === 'forgot'">
-      <!-- Paso 1: email -->
-      <form *ngIf="!forgotPaso2" [formGroup]="forgotForm" (ngSubmit)="onForgotPassword()">
+      <div class="forgot-header">
+        <h2 class="forgot-title">Recuperar contraseña</h2>
+      </div>
+
+      <!-- Paso único: introducir email → se envía el link por email -->
+      <form *ngIf="!emailEnviado" [formGroup]="forgotForm" (ngSubmit)="onForgotPassword()">
         <p class="forgot-info">
-          Introduce tu email y recibirás un código para restablecer tu contraseña.
-          <br><small>(DEMO: el código aparecerá en pantalla en lugar de enviarse por email)</small>
+          Introduce tu email y te enviaremos un enlace para restablecer tu contraseña.
         </p>
         <div class="form-group">
           <label>Email de tu cuenta</label>
@@ -82,33 +99,18 @@
           <span class="field-error" *ngIf="forgotEmail?.touched && forgotEmail?.errors?.['email']">Formato de email inválido</span>
         </div>
         <button type="submit" class="btn-submit" [disabled]="isLoading">
-          {{ isLoading ? 'Enviando...' : 'Obtener código' }}
+          {{ isLoading ? 'Enviando...' : 'Enviar enlace' }}
         </button>
         <p class="forgot-link"><a (click)="cambiarModo('login')">Volver al inicio de sesión</a></p>
       </form>
 
-      <!-- Paso 2: token + nueva contraseña -->
-      <div *ngIf="forgotPaso2">
-        <div class="token-demo-box">
-          <p><strong>Token de recuperación (DEMO):</strong></p>
-          <code>{{ tokenRecuperacion }}</code>
-        </div>
-        <form [formGroup]="resetForm" (ngSubmit)="onResetPassword()">
-          <div class="form-group">
-            <label>Código de recuperación</label>
-            <input type="text" formControlName="token" placeholder="Pega aquí el código">
-            <span class="field-error" *ngIf="resetToken?.touched && resetToken?.errors?.['required']">El código es obligatorio</span>
-          </div>
-          <div class="form-group">
-            <label>Nueva contraseña</label>
-            <input type="password" formControlName="newPassword" placeholder="Mínimo 6 caracteres">
-            <span class="field-error" *ngIf="resetNewPass?.touched && resetNewPass?.errors?.['required']">La contraseña es obligatoria</span>
-            <span class="field-error" *ngIf="resetNewPass?.touched && resetNewPass?.errors?.['minlength']">Mínimo 6 caracteres</span>
-          </div>
-          <button type="submit" class="btn-submit" [disabled]="isLoading">
-            {{ isLoading ? 'Cambiando...' : 'Cambiar contraseña' }}
-          </button>
-        </form>
+      <!-- Confirmación: email enviado -->
+      <div *ngIf="emailEnviado" class="email-enviado-box">
+        <div class="email-enviado-icon"></div>
+        <h3>¡Email enviado!</h3>
+        <p>Revisa tu bandeja de entrada. Haz clic en el enlace del email para crear una nueva contraseña.</p>
+        <p class="email-nota"><small>El enlace es válido durante 1 hora.</small></p>
+        <p class="forgot-link"><a (click)="cambiarModo('login')">Volver al inicio de sesión</a></p>
       </div>
     </div>
 

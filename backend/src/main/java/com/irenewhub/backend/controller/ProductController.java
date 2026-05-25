@@ -24,16 +24,12 @@ public class ProductController {
     @GetMapping
     //ResponseEntity, permite controlar el codigo HTTP de respuesta  (200 OK, 201 CREATED, 204 NO CONTENT...)
     public ResponseEntity<List<ProductResponse>> getAllProducts(
-            @RequestParam(required = false) String category,  // ?category=Baterías
-            @RequestParam(required = false) String search,    // ?search=pantalla
-            @RequestParam(required = false) String model) {   // ?model=iPhone+13
+            @RequestParam(required = false) String category,  // ?category=Baterias
+            @RequestParam(required = false) String search) {  // ?search=pantalla
 
-        // Los parámetros son opcionales: se comprueba en orden de prioridad
+        // Los parametros son opcionales: se comprueba en orden de prioridad
         if (search != null && !search.isEmpty()) {
             return ResponseEntity.ok(productService.searchProducts(search));
-        }
-        if (model != null && !model.isEmpty()) {
-            return ResponseEntity.ok(productService.getProductsByModel(model));
         }
         if (category != null && !category.isEmpty()) {
             return ResponseEntity.ok(productService.getProductsByCategory(category));

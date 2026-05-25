@@ -1,4 +1,4 @@
-// ─── COMPONENTE RAÍZ ──────────────────────────────────────────────────────────
+// ---- COMPONENTE RAÍZ ----
 // Oculta el navbar en la página de login.
 // La sesión se gestiona con sessionStorage (ver AuthService):
 //   - F5 / recarga → la sesión se mantiene (sessionStorage persiste en la misma pestaña)

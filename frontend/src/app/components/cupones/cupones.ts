@@ -1,8 +1,5 @@
-// ─── COMPONENTE CUPONES ───────────────────────────────────────────────────────
-// Muestra los cupones de descuento disponibles para el usuario.
-// En esta versión del TFG los cupones son estáticos (no vienen del backend).
-
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-cupones',
@@ -10,12 +7,19 @@ import { Component } from '@angular/core';
   templateUrl: './cupones.html',
   styleUrl: './cupones.css'
 })
-export class Cupones {
+export class Cupones implements OnInit {
 
-  // Cupones de ejemplo para demostrar la funcionalidad
-  cupones = [
-    { codigo: 'BIENVENIDO10', descuento: '10%',  descripcion: 'Descuento de bienvenida en tu primera compra', activo: true },
-    { codigo: 'VERANO20',     descuento: '20%',  descripcion: 'Promoción de verano en baterías y pantallas',   activo: true },
-    { codigo: 'FIDELIDAD5',   descuento: '5%',   descripcion: 'Cupón por fidelidad — más de 3 compras',        activo: false }
-  ];
+  readonly API = 'http://localhost:8080/api';
+
+  cupones: any[] = [];
+  isLoading = true;
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit(): void {
+    this.http.get<any[]>(`${this.API}/coupons/my`).subscribe({
+      next: (data) => { this.cupones = data; this.isLoading = false; },
+      error: ()    => { this.isLoading = false; }
+    });
+  }
 }

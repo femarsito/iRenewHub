@@ -1,7 +1,7 @@
 <!-- HERO SECTION -->
 <section class="hero">
   <div class="hero-content">
-    <div class="hero-badge">Repuestos Originales para iPhone</div>
+    <div class="hero-badge">Repuestos Originales (OEM) para iPhone</div>
     <h1 class="hero-title">
       Tu iPhone Merece <br>
       <span class="hero-highlight">Las Mejores Piezas</span>
@@ -20,8 +20,6 @@
     </div>
     <div class="hero-stats">
       <div class="stat">
-        <span class="stat-number">20+</span>
-        <span class="stat-label">Modelos</span>
       </div>
       <div class="stat-divider"></div>
       <div class="stat">
@@ -49,27 +47,6 @@
       </div>
     </div>
     <div class="hero-blob"></div>
-  </div>
-</section>
-
-<!-- CATEGORÍAS -->
-<section class="categories-section">
-  <div class="section-container">
-    <div class="section-header">
-      <h2>Explora por Categoría</h2>
-      <p>Encuentra exactamente el repuesto que necesitas</p>
-    </div>
-    <div class="categories-grid">
-      <div 
-        *ngFor="let cat of categories" 
-        class="category-card"
-        (click)="goToCategory(cat.name)">
-        <span class="category-icon">{{ cat.icon }}</span>
-        <h3>{{ cat.name }}</h3>
-        <p>{{ cat.description }}</p>
-        <span class="category-arrow">→</span>
-      </div>
-    </div>
   </div>
 </section>
 
@@ -109,7 +86,7 @@
             </span>
           </div>
           <button class="btn-card" (click)="goToDetail(product.id); $event.stopPropagation()">
-            Ver Detalles
+            <span>Ver Detalles</span>
           </button>
         </div>
       </div>
@@ -132,7 +109,6 @@
     </div>
     <div class="advantages-grid">
       <div *ngFor="let adv of advantages" class="advantage-card">
-        <span class="advantage-icon">{{ adv.icon }}</span>
         <h3>{{ adv.title }}</h3>
         <p>{{ adv.description }}</p>
       </div>

@@ -1,4 +1,4 @@
-// ─── MÓDULO RAÍZ DE LA APLICACIÓN ────────────────────────────────────────────
+// ---- MÓDULO RAÍZ DE LA APLICACIÓN ----
 // AppModule es el punto de registro de toda la aplicación Angular.
 
 import { NgModule, LOCALE_ID } from '@angular/core';
@@ -10,7 +10,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@angular/common/http';
 
-// ─── COMPONENTES ─────────────────────────────────────────────────────────────
+// ---- COMPONENTES ----
 import { App }          from './app';
 import { Home }         from './components/home/home';
 import { Navbar }       from './components/navbar/navbar';
@@ -23,9 +23,10 @@ import { Login }        from './components/login/login';
 import { AdminPanel }   from './components/admin-panel/admin-panel';
 import { MisDatos }     from './components/mis-datos/mis-datos';
 import { MisCompras }   from './components/mis-compras/mis-compras';
-import { Cupones }      from './components/cupones/cupones';
+import { Cupones }        from './components/cupones/cupones';
+import { ResetPassword }  from './components/reset-password/reset-password';
 
-// ─── SERVICIOS E INTERCEPTOR ──────────────────────────────────────────────────
+// ---- SERVICIOS E INTERCEPTOR ----
 import { ProductService } from './services/product';
 import { CartService }    from './services/cart';
 import { AuthService }    from './services/auth';
@@ -47,7 +48,8 @@ registerLocaleData(localeEs);
     AdminPanel,
     MisDatos,
     MisCompras,
-    Cupones
+    Cupones,
+    ResetPassword
   ],
   imports: [
     BrowserModule,

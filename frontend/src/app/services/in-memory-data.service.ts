@@ -31,7 +31,6 @@ export class InMemoryDataService implements InMemoryDbService {
         imageUrl: 'assets/products/pant-i14-oem.webp',
         stock: 15,
         isOEM: true,
-        compatibility: ['iPhone 14 Pro'],
         specifications: {
           warranty: '12 meses',
           condition: 'Nuevo',
@@ -47,7 +46,6 @@ export class InMemoryDataService implements InMemoryDbService {
         imageUrl: 'assets/products/bat-i13-oem.webp',
         stock: 30,
         isOEM: true,
-        compatibility: ['iPhone 13', 'iPhone 13 Pro'],
         specifications: {
           warranty: '6 meses',
           condition: 'Nuevo',
@@ -64,7 +62,6 @@ export class InMemoryDataService implements InMemoryDbService {
         imageUrl: 'assets/products/cam-i15promax-oem.jpg',
         stock: 8,
         isOEM: true,
-        compatibility: ['iPhone 15 Pro Max'],
         specifications: {
           warranty: '12 meses',
           condition: 'Nuevo',
@@ -80,7 +77,6 @@ export class InMemoryDataService implements InMemoryDbService {
         imageUrl: 'assets/products/pant-i11-generica.jpg',
         stock: 25,
         isOEM: false,
-        compatibility: ['iPhone 11'],
         specifications: {
           warranty: '6 meses',
           condition: 'Nuevo',
@@ -96,7 +92,6 @@ export class InMemoryDataService implements InMemoryDbService {
         imageUrl: 'assets/products/puerto-i12-oem.jpg',
         stock: 40,
         isOEM: true,
-        compatibility: ['iPhone 12', 'iPhone 12 Mini', 'iPhone 12 Pro'],
         specifications: {
           warranty: '6 meses',
           condition: 'Nuevo',
@@ -112,7 +107,6 @@ export class InMemoryDataService implements InMemoryDbService {
         imageUrl: 'assets/products/auricular-i13promax-oem.jpg',
         stock: 20,
         isOEM: true,
-        compatibility: ['iPhone 13 Pro', 'iPhone 13 Pro Max'],
         specifications: {
           warranty: '3 meses',
           condition: 'Nuevo',

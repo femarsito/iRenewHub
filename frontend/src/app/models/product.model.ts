@@ -9,8 +9,7 @@ export interface Product {
   description: string;
   imageUrl: string;
   stock: number;
-  isOEM: boolean; // true = Original (OEM), false = Genérica
-  compatibility: string[]; 
+  isOEM: boolean; // true = Original (OEM), false = Generica
   specifications: {
     warranty: string;
     condition: string;
